@@ -4,12 +4,19 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
-
+#include <stdint.h>
+#ifdef __AVR__
 #include <avr/pgmspace.h>
 #include <avr/io.h>
 #include <avr/interrupt.h>
-
+#endif
 #include "binary.h"
+
+#ifndef __AVR__
+#define PROGMEM
+#define pgm_read_byte(addr) (*(const uint8_t *)(addr))
+#define pgm_read_word(addr) (*(const uint16_t *)(addr))
+#endif
 
 #ifdef __cplusplus
 extern "C"{
@@ -190,7 +197,7 @@ extern const uint8_t PROGMEM digital_pin_to_timer_PGM[];
 #ifdef __cplusplus
 #include "WCharacter.h"
 #include "WString.h"
-#include "HardwareSerial.h"
+//#include "HardwareSerial.h"
 
 uint16_t makeWord(uint16_t w);
 uint16_t makeWord(byte h, byte l);
@@ -210,6 +217,6 @@ long map(long, long, long, long, long);
 
 #endif
 
-#include "pins_arduino.h"
+//#include "pins_arduino.h"
 
 #endif

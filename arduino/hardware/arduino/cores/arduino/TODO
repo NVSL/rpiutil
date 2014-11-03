@@ -1,0 +1,9 @@
+1. Automatically apply gpio to rpi pin convension when calling function with pin parameters.
+2. Push the arduino core library and wiringPi onto svn.
+3. Interrupts...
+4. tone/noTone...   //Done
+5. shiftIn/Out  //Done
+6. pulseIn      //Done
+7. Serial/USB
+8. analogRW
+9. PWM
