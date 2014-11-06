@@ -38,7 +38,7 @@ INCLUDE	= -I.
 DEFS	= -D_GNU_SOURCE
 CFLAGS	= $(DEBUG) $(DEFS) -Wformat=2 -Wall -Winline $(INCLUDE) -pipe -fPIC
 
-LIBS    =
+LIBS    = 
 
 # Should not alter anything below this line
 ###############################################################################

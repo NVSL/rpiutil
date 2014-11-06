@@ -1,6 +1,6 @@
-1. Automatically apply gpio to rpi pin convension when calling function with pin parameters.
-2. Push the arduino core library and wiringPi onto svn.
-3. Interrupts...
+1. Automatically apply gpio to rpi pin convension when calling function with pin parameters. //wiringPiSetupGpio/Phys
+2. Push the arduino core library and wiringPi onto svn. //Done
+3. Interrupts...    //Please don't
 4. tone/noTone...   //Done
 5. shiftIn/Out  //Done
 6. pulseIn      //Done

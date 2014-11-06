@@ -6,8 +6,8 @@ DYN_VERS_MAJ=1
 DYN_VERS_MIN=0
 
 VERSION=$(DYN_VERS_MAJ).$(DYN_VERS_MIN)
-DESTDIR=/usr
-PREFIX=/local
+DESTDIR=$(GADGETRON_RASPI_PATH)
+PREFIX=
 
 STATIC=libArduino.a
 DYNAMIC=libArduino.so.$(VERSION)
@@ -75,6 +75,7 @@ tags:	$(SRC)
 .PHONEY:	install-headers
 install-headers:
 	@echo "[Install Headers]"
+	@echo $(DESTDIR)$(PREFIX)/include
 	@install -m 0755 -d		    	$(DESTDIR)$(PREFIX)/include
 	@install -m 0644 wiringPi.h		$(DESTDIR)$(PREFIX)/include
 	@install -m 0644 Arduino.h		$(DESTDIR)$(PREFIX)/include
@@ -89,10 +90,11 @@ install-headers:
 .PHONEY:	install
 install:	$(DYNAMIC) install-headers
 	@echo "[Install Dynamic Lib]"
+	@echo $(DESTDIR)$(PREFIX)/lib
 	@install -m 0755 -d						$(DESTDIR)$(PREFIX)/lib
 	@install -m 0755 libArduino.so.$(VERSION)			$(DESTDIR)$(PREFIX)/lib/libArduino.so.$(VERSION)
 	@ln -sf $(DESTDIR)$(PREFIX)/lib/libArduino.so.$(VERSION)	$(DESTDIR)/lib/libArduino.so
-	@ldconfig
+#	@ldconfig
 
 .PHONEY:	install-static
 install-static:	$(STATIC) install-headers
@@ -103,6 +105,7 @@ install-static:	$(STATIC) install-headers
 .PHONEY:	uninstall
 uninstall:
 	@echo "[UnInstall]"
+	@echo $(DESTDIR)$(PREFIX)
 	@rm -f $(DESTDIR)$(PREFIX)/include/wiringPi.h
 	@rm -f $(DESTDIR)$(PREFIX)/include/Arduino.h
 	@rm -f $(DESTDIR)$(PREFIX)/include/new.h
@@ -113,7 +116,8 @@ uninstall:
 	@rm -f $(DESTDIR)$(PREFIX)/include/WCharacter.h
 	@rm -f $(DESTDIR)$(PREFIX)/include/WString.h
 	@rm -f $(DESTDIR)$(PREFIX)/lib/libArduino.*
-	@ldconfig
+	@rm -f $(DESTDIR)/lib/libArduino.*
+#	@ldconfig
 
 .PHONEY:	depend
 depend:

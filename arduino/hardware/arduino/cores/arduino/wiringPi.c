@@ -309,15 +309,6 @@ static int pinToGpioR2 [64] =
   -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,	// ... 63
 } ;
 
-static int gpioToPinR2[64] = 
-{
-    30, 31, 8, 9, 7, 21, 22, 11, 10, 13, 12, 14, 26, 23, 15, 16, 
-    27, 0, 1, 24, 28, 29, 3, 4, 5, 6, 25, 2, 17, 18, 19, 20, //31
-  -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,	// ... 47
-  -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,	// ... 63
-} ;
-
-
 // physToGpio:
 //	Take a physical pin (1 through 26) and re-map it to the BCM_GPIO pin
 //	Cope for 2 different board revisions here.
@@ -1278,6 +1269,7 @@ int digitalRead (uint8_t pin)
 
 void digitalWrite (uint8_t pin, uint8_t value)
 {
+  uint8_t origPin = pin;
   struct wiringPiNodeStruct *node = wiringPiNodes ;
 
   if ((pin & PI_GPIO_MASK) == 0)		// On-Board Pin
@@ -1299,6 +1291,17 @@ void digitalWrite (uint8_t pin, uint8_t value)
       pin = physToGpio [pin] ;
     else if (wiringPiMode != WPI_MODE_GPIO)
       return ;
+
+    uint8_t fSel    = gpioToGPFSEL [pin] ;
+    uint8_t shift   = gpioToShift  [pin] ;
+
+    if(*(gpio + fSel) == (*(gpio + fSel) & ~(7 << shift))){//INPUT
+        if(value == LOW)
+            pullUpDnControl(origPin, PUD_DOWN);
+        else
+            pullUpDnControl(origPin, PUD_UP);
+        return;
+    }
 
     if (value == LOW)
       *(gpio + gpioToGPCLR [pin]) = 1 << (pin & 31) ;
@@ -1933,5 +1936,7 @@ int wiringPiSetupSys (void)
 }
 
 void init(){
-    wiringPiSetup();
+// wiringPiSetupGpio initializes the pins in GPIO mode, which is the same
+// definition as the GPIO on pi board.
+    wiringPiSetupGpio();
 }

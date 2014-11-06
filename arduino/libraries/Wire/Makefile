@@ -6,8 +6,8 @@ DYN_VERS_MAJ=1
 DYN_VERS_MIN=0
 
 VERSION=$(DYN_VERS_MAJ).$(DYN_VERS_MIN)
-DESTDIR=/usr
-PREFIX=/local
+DESTDIR=$(GADGETRON_RASPI_PATH)
+PREFIX=
 
 STATIC=libWire.a
 DYNAMIC=libWire.so.$(VERSION)
@@ -15,11 +15,11 @@ DYNAMIC=libWire.so.$(VERSION)
 #DEBUG	= -g -O0
 DEBUG	= -O2
 CC	= g++
-INCLUDE	= -I.
+INCLUDE	= -I. -I$(GADGETRON_RASPI_PATH)/include
 DEFS	= -D_GNU_SOURCE
-CFLAGS	= $(DEBUG) $(DEFS) -Wformat=2 -Wall -Winline $(INCLUDE) -pipe -fPIC
+CFLAGS	= $(DEBUG) $(DEFS) -Wformat=2 -Wall -Winline $(INCLUDE) $(LIBS) -pipe -fPIC
 
-LIBS    =
+LIBS    = -L$(GADGETRON_RASPI_PATH)/lib
 
 # Should not alter anything below this line
 ###############################################################################
@@ -40,7 +40,7 @@ $(STATIC):	$(OBJ)
 
 $(DYNAMIC):	$(OBJ)
 	@echo "[Link (Dynamic)]" 
-	@$(CC) -shared -Wl,-soname,libWire.so -o libWire.so.$(VERSION) -lpthread -lArduino $(OBJ)
+	@$(CC) -shared -Wl,-soname,libWire.so -o libWire.so.$(VERSION) -lpthread -lArduino $(LIBS) $(OBJ)
 
 .cpp.o:
 	@echo [Compile] $<
@@ -69,7 +69,7 @@ install:	$(DYNAMIC) install-headers
 	@install -m 0755 -d						$(DESTDIR)$(PREFIX)/lib
 	@install -m 0755 libWire.so.$(VERSION)			$(DESTDIR)$(PREFIX)/lib/libWire.so.$(VERSION)
 	@ln -sf $(DESTDIR)$(PREFIX)/lib/libWire.so.$(VERSION)	$(DESTDIR)/lib/libWire.so
-	@ldconfig
+#	@ldconfig
 
 .PHONEY:	install-static
 install-static:	$(STATIC) install-headers
@@ -82,7 +82,7 @@ uninstall:
 	@echo "[UnInstall]"
 	@rm -f $(DESTDIR)$(PREFIX)/include/Wire.h
 	@rm -f $(DESTDIR)$(PREFIX)/lib/libWire.*
-	@ldconfig
+#	@ldconfig
 
 .PHONEY:	depend
 depend:
