@@ -1,0 +1,3 @@
+#!/bin/sh
+
+sudo LD_LIBRARY_PATH=$GADGETRON_RASPI_PATH/lib $1

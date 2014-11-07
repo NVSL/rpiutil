@@ -1296,6 +1296,7 @@ void digitalWrite (uint8_t pin, uint8_t value)
     uint8_t shift   = gpioToShift  [pin] ;
 
     if(*(gpio + fSel) == (*(gpio + fSel) & ~(7 << shift))){//INPUT
+        printf("INPUT\n");
         if(value == LOW)
             pullUpDnControl(origPin, PUD_DOWN);
         else
