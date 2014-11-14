@@ -237,7 +237,7 @@ static uint64_t epochMilli, epochMicro ;
 
 // Misc
 
-static int wiringPiMode = WPI_MODE_UNINITIALISED ;
+static int wiringPiMode = WPI_MODE_UNINITIALISED;
 static volatile int    pinPass = -1 ;
 static pthread_mutex_t pinMutex ;
 
@@ -849,6 +849,7 @@ void setPadDrive (int group, int value)
 
 int getAlt (int pin)
 {
+  initWiringPi();
   int fSel, shift, alt ;
 
   pin &= 63 ;
@@ -877,6 +878,7 @@ int getAlt (int pin)
 
 void pwmSetMode (int mode)
 {
+  initWiringPi();
   if ((wiringPiMode == WPI_MODE_PINS) || (wiringPiMode == WPI_MODE_PHYS) || (wiringPiMode == WPI_MODE_GPIO))
   {
     if (mode == PWM_MODE_MS)
@@ -896,6 +898,7 @@ void pwmSetMode (int mode)
 
 void pwmSetRange (unsigned int range)
 {
+  initWiringPi();
   if ((wiringPiMode == WPI_MODE_PINS) || (wiringPiMode == WPI_MODE_PHYS) || (wiringPiMode == WPI_MODE_GPIO))
   {
     *(pwm + PWM0_RANGE) = range ; delayMicroseconds (10) ;
@@ -914,6 +917,7 @@ void pwmSetRange (unsigned int range)
 
 void pwmSetClock (int divisor)
 {
+  initWiringPi();
   uint32_t pwm_control ;
   divisor &= 4095 ;
 
@@ -960,6 +964,7 @@ void pwmSetClock (int divisor)
 
 void gpioClockSet (int pin, int freq)
 {
+  initWiringPi();
   int divi, divr, divf ;
 
   pin &= 63 ;
@@ -1087,6 +1092,7 @@ void pinEnableED01Pi (int pin)
 
 void pinModeAlt (int pin, int mode)
 {
+  initWiringPi();
   int fSel, shift ;
 
   if ((pin & PI_GPIO_MASK) == 0)		// On-board pin
@@ -1114,6 +1120,7 @@ void pinModeAlt (int pin, int mode)
 
 void pinMode (uint8_t pin, uint8_t mode)
 {
+  initWiringPi();
   int    fSel, shift, alt ;
   struct wiringPiNodeStruct *node = wiringPiNodes ;
   int origPin = pin ;
@@ -1192,6 +1199,7 @@ void pinMode (uint8_t pin, uint8_t mode)
 
 void pullUpDnControl (int pin, int pud)
 {
+  initWiringPi();
   struct wiringPiNodeStruct *node = wiringPiNodes ;
 
   if ((pin & PI_GPIO_MASK) == 0)		// On-Board Pin
@@ -1226,6 +1234,7 @@ void pullUpDnControl (int pin, int pud)
 
 int digitalRead (uint8_t pin)
 {
+  initWiringPi();
   char c ;
   struct wiringPiNodeStruct *node = wiringPiNodes ;
 
@@ -1269,6 +1278,7 @@ int digitalRead (uint8_t pin)
 
 void digitalWrite (uint8_t pin, uint8_t value)
 {
+  initWiringPi();
   uint8_t origPin = pin;
   struct wiringPiNodeStruct *node = wiringPiNodes ;
 
@@ -1296,7 +1306,6 @@ void digitalWrite (uint8_t pin, uint8_t value)
     uint8_t shift   = gpioToShift  [pin] ;
 
     if(*(gpio + fSel) == (*(gpio + fSel) & ~(7 << shift))){//INPUT
-        printf("INPUT\n");
         if(value == LOW)
             pullUpDnControl(origPin, PUD_DOWN);
         else
@@ -1325,6 +1334,7 @@ void digitalWrite (uint8_t pin, uint8_t value)
 
 void pwmWrite (int pin, int value)
 {
+  initWiringPi();
   struct wiringPiNodeStruct *node = wiringPiNodes ;
 
   if ((pin & PI_GPIO_MASK) == 0)		// On-Board Pin
@@ -1356,6 +1366,7 @@ void pwmWrite (int pin, int value)
 
 int analogRead (uint8_t pin)
 {
+  initWiringPi();
   struct wiringPiNodeStruct *node = wiringPiNodes ;
 
   if ((node = wiringPiFindNode (pin)) == NULL)
@@ -1375,6 +1386,7 @@ int analogRead (uint8_t pin)
 
 void analogWrite (uint8_t pin, int value)
 {
+  initWiringPi();
   struct wiringPiNodeStruct *node = wiringPiNodes ;
 
   if ((node = wiringPiFindNode (pin)) == NULL)
@@ -1393,6 +1405,7 @@ void analogWrite (uint8_t pin, int value)
 
 void pwmToneWrite (int pin, int freq)
 {
+  initWiringPi();
   int range ;
 
   if (freq == 0)
@@ -1420,6 +1433,7 @@ void pwmToneWrite (int pin, int freq)
 
 void digitalWriteByte (int value)
 {
+  initWiringPi();
   uint32_t pinSet = 0 ;
   uint32_t pinClr = 0 ;
   int mask = 1 ;
@@ -1464,6 +1478,7 @@ void digitalWriteByte (int value)
 
 int waitForInterrupt (int pin, int mS)
 {
+  initWiringPi();
   int fd, x ;
   uint8_t c ;
   struct pollfd polls ;
@@ -1751,6 +1766,8 @@ unsigned long micros (void)
 
 int wiringPiSetup (void)
 {
+  if(wiringPiMode != WPI_MODE_UNINITIALISED)
+    return -1;
   int   fd ;
   int   boardRev ;
   int   model, rev, mem, maker, overVolted ;
@@ -1936,8 +1953,13 @@ int wiringPiSetupSys (void)
   return 0 ;
 }
 
+void initWiringPi(){
+    if(wiringPiMode == WPI_MODE_UNINITIALISED)
+        wiringPiSetupGpio();
+}
+
 void init(){
 // wiringPiSetupGpio initializes the pins in GPIO mode, which is the same
 // definition as the GPIO on pi board.
-    wiringPiSetupGpio();
+    initWiringPi();
 }

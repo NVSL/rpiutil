@@ -34,11 +34,9 @@ def main(argv):
         elif opt in ("--auto"):
             libs = []
             auto = True
-            break;
 
     if auto:
         libs = [lib[3 : -3] for lib in os.listdir(libpath) if lib.startswith('lib') and lib.endswith('.so')]
-        print libs
 
     assert 'Arduino' in libs
     if not sources:
