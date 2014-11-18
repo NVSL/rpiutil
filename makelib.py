@@ -19,7 +19,7 @@ def install(opts, sopath):
         path = '.'
     libs = ['Arduino']
     excludes = []
-    cmd = 'g++ -U ARDUINO=100 -o %s -shared -fPIC -L%s/lib -I%s -I%s/include' % (sopath, os.environ['GADGETRON_RASPI_PATH'],\
+    cmd = 'g++ -D ARDUINO=100 -o %s -shared -fPIC -L%s/lib -I%s -I%s/include' % (sopath, os.environ['GADGETRON_RASPI_PATH'],\
         path, os.environ['GADGETRON_RASPI_PATH'])
     for opt, arg in opts:
         if opt in ('-l', '--libs'):
