@@ -22,7 +22,7 @@ def main(argv):
         path = '.'
     outputfile = '.'.join(args[0].split('.')[:-1]) + '.out'
     libs = ['Arduino']
-    cmd = 'g++ -L%s -I%s -I%s' % (libpath, path, includepath)
+    cmd = 'g++ -U ARDUINO=100 -L%s -I%s -I%s' % (libpath, path, includepath)
     for opt, arg in opts:
         if opt in ('-h', "--help"):
             print helpmsg
