@@ -9,24 +9,27 @@
 
 // This example code is in the public domain.
 
-
+#include <Arduino.h>
 #include <Wire.h>
+#include <cstdio>
 
 void setup()
 {
   Wire.begin();        // join i2c bus (address optional for master)
-  Serial.begin(9600);  // start serial for output
+  //Serial.begin(9600);  // start serial for output
 }
 
 void loop()
 {
-  Wire.requestFrom(2, 6);    // request 6 bytes from slave device #2
+  Wire.requestFrom(0x51, 6);    // request 6 bytes from slave device #2
 
   while(Wire.available())    // slave may send less than requested
   { 
     char c = Wire.read(); // receive a byte as character
-    Serial.print(c);         // print the character
+    //Serial.print(c);         // print the character
+    printf("%c", c);
   }
+  printf("\n");
 
   delay(500);
 }

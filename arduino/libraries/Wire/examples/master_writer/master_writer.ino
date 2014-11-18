@@ -10,22 +10,23 @@
 // This example code is in the public domain.
 
 
+#include <Arduino.h>
 #include <Wire.h>
+#include <cstdio>
 
 void setup()
 {
-  Wire.begin(); // join i2c bus (address optional for master)
+  Wire.begin(0x50); // join i2c bus (address optional for master)
 }
 
 byte x = 0;
 
 void loop()
 {
-  Wire.beginTransmission(4); // transmit to device #4
+  Wire.beginTransmission(0x50); // transmit to device #4
+  printf("%d\n", x);
   Wire.write("x is ");        // sends five bytes
-  Wire.write(x);              // sends one byte  
+  Wire.write(x++);              // sends one byte  
   Wire.endTransmission();    // stop transmitting
-
-  x++;
   delay(500);
 }

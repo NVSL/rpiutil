@@ -125,8 +125,31 @@ static inline __s32 i2c_smbus_read_block_data(int file, __u8 command,
 {
     union i2c_smbus_data data;
     int i;
+    data.block[0] = *values;
     if (i2c_smbus_access(file,I2C_SMBUS_READ,command,
+                         data.block[0] == 32 ? I2C_SMBUS_I2C_BLOCK_BROKEN :
                          I2C_SMBUS_BLOCK_DATA,&data))
+        return -1;
+    else {
+        for (i = 1; i <= data.block[0]; i++)
+            values[i-1] = data.block[i];
+            return data.block[0];
+    }
+}
+
+/* Returns the number of read bytes */
+static inline __s32 i2c_smbus_read_i2c_block_data(int file, __u8 command, 
+                                              __u8 length, __u8 *values)
+{
+    union i2c_smbus_data data;
+    int i;
+
+    if(length > 32)
+        length = 32;
+    data.block[0] = length;
+    if (i2c_smbus_access(file,I2C_SMBUS_READ,command,
+                         length == 32 ? I2C_SMBUS_I2C_BLOCK_BROKEN :
+                         I2C_SMBUS_I2C_BLOCK_DATA,&data))
         return -1;
     else {
         for (i = 1; i <= data.block[0]; i++)
@@ -162,7 +185,7 @@ static inline __s32 i2c_smbus_write_i2c_block_data(int file, __u8 command,
     }
     data.block[0] = length;
     return i2c_smbus_access(file,I2C_SMBUS_WRITE,command,
-                            I2C_SMBUS_I2C_BLOCK_DATA, &data);
+                            I2C_SMBUS_I2C_BLOCK_BROKEN, &data);
 }
 #endif /*ndef I2C_DEV_H*/
 
@@ -238,9 +261,10 @@ uint8_t TwoWire::requestFrom(uint8_t address, uint8_t quantity, uint8_t sendStop
   if(quantity > BUFFER_LENGTH){
     quantity = BUFFER_LENGTH;
   }
+  rxBuffer[0] = quantity;
   // perform blocking read into buffer
   //uint8_t read = twi_readFrom(address, rxBuffer, quantity, sendStop);
-  int read = i2c_smbus_read_block_data( fd, 0x0, rxBuffer );
+  int read = i2c_smbus_read_i2c_block_data( fd, 0x0, quantity, rxBuffer );
   // set rx buffer iterator vars
   rxBufferIndex = 0;
   rxBufferLength = read;
@@ -306,11 +330,14 @@ uint8_t TwoWire::endTransmission(uint8_t sendStop)
 {
   // transmit buffer (blocking)
   //int8_t ret = twi_writeTo(txAddress, txBuffer, txBufferLength, 1, sendStop);
-  int ret;
+  int ret = 0;
   if( txBufferLength == 1 ){
+    //ret = i2c_smbus_write_byte( fd, txBuffer[0] );
     ret = i2c_smbus_write_byte( fd, txBuffer[0] );
   }else{
-    ret = i2c_smbus_write_i2c_block_data( fd, txBuffer[0], txBufferLength - 1, txBuffer + 1 );
+    //ret = i2c_smbus_write_byte( fd, txBuffer[0] );
+    ret = i2c_smbus_write_i2c_block_data( fd, txBuffer[0], txBufferLength-1, txBuffer+1 );
+    //ret = i2c_smbus_write_block_data( fd, txBuffer[0], txBufferLength-1, txBuffer+1 );
   }
   // reset tx buffer iterator vars
   txBufferIndex = 0;
@@ -359,6 +386,9 @@ size_t TwoWire::write(uint8_t data)
 size_t TwoWire::write(const uint8_t *data, size_t quantity)
 {
   if(transmitting){
+    if(!txBufferLength){
+        write(0x0);
+    }
   // in master transmitter mode
     for(size_t i = 0; i < quantity; ++i){
       write(data[i]);
