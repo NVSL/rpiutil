@@ -269,17 +269,17 @@ uint8_t TwoWire::requestFrom(uint8_t address, uint8_t quantity, uint8_t sendStop
   uint8_t reg = 0x0;
   if(useReg)
     reg = tmpReg;
-  printf("request %d bytes from register 0x%02X on address %02X\n", quantity, reg, address);
-  printf("fd: %d\n", fd);
+  // printf("request %d bytes from register 0x%02X on address %02X\n", quantity, reg, address);
+  // printf("fd: %d\n", fd);
   int read = i2c_smbus_read_i2c_block_data( fd, reg, quantity, rxBuffer );
   // set rx buffer iterator vars
   rxBufferIndex = 0;
   rxBufferLength = read;
-  printf("Values: ");
-  for (int i = 0; i < rxBufferLength; ++i){
-    printf("0x%02X ", rxBuffer[i]);
-  }
-  puts("");
+  // printf("Values: ");
+  // for (int i = 0; i < rxBufferLength; ++i){
+  //   printf("0x%02X ", rxBuffer[i]);
+  // }
+  // puts("");
 
   return read;
 }
@@ -311,6 +311,7 @@ void TwoWire::beginTransmission(uint8_t address)
   if( ioctl( fd, I2C_SLAVE, address ) < 0 ){
     printf("Unable to select I2C device at %2x.\n", address);
   }
+  // printf("beginTransmission %02X\n", address);
   // indicate that we are transmitting
   transmitting = 1;
   // set address of targeted slave
@@ -344,9 +345,9 @@ uint8_t TwoWire::endTransmission(uint8_t sendStop)
   //int8_t ret = twi_writeTo(txAddress, txBuffer, txBufferLength, 1, sendStop);
   int ret = 0;
   if( txBufferLength == 1 ){
-    //ret = i2c_smbus_write_byte( fd, txBuffer[0] );
     useReg = 1;
     tmpReg = txBuffer[0];
+    //ret = i2c_smbus_write_byte( fd, txBuffer[0] );
     ret = i2c_smbus_write_quick( fd, txBuffer[0] );
   }else{
     //ret = i2c_smbus_write_byte( fd, txBuffer[0] );
@@ -354,6 +355,7 @@ uint8_t TwoWire::endTransmission(uint8_t sendStop)
     ret = i2c_smbus_write_i2c_block_data( fd, txBuffer[0], txBufferLength-1, txBuffer+1 );
     //ret = i2c_smbus_write_block_data( fd, txBuffer[0], txBufferLength-1, txBuffer+1 );
   }
+  // printf("endTransmission get status %d\n", ret);
   // reset tx buffer iterator vars
   txBufferIndex = 0;
   txBufferLength = 0;
