@@ -191,6 +191,8 @@ static inline __s32 i2c_smbus_write_i2c_block_data(int file, __u8 command,
 
 // Initialize Class Variables //////////////////////////////////////////////////
 
+uint8_t useReg = 0;
+uint8_t tmpReg = 0;
 int TwoWire::fd = -1;
 uint8_t TwoWire::rxBuffer[BUFFER_LENGTH];
 uint8_t TwoWire::rxBufferIndex = 0;
@@ -264,7 +266,10 @@ uint8_t TwoWire::requestFrom(uint8_t address, uint8_t quantity, uint8_t sendStop
   rxBuffer[0] = quantity;
   // perform blocking read into buffer
   //uint8_t read = twi_readFrom(address, rxBuffer, quantity, sendStop);
-  int read = i2c_smbus_read_i2c_block_data( fd, 0x0, quantity, rxBuffer );
+  uint8_t reg = 0x0;
+  if(useReg)
+    reg = tmpReg;
+  int read = i2c_smbus_read_i2c_block_data( fd, reg, quantity, rxBuffer );
   // set rx buffer iterator vars
   rxBufferIndex = 0;
   rxBufferLength = read;
@@ -333,9 +338,12 @@ uint8_t TwoWire::endTransmission(uint8_t sendStop)
   int ret = 0;
   if( txBufferLength == 1 ){
     //ret = i2c_smbus_write_byte( fd, txBuffer[0] );
-    ret = i2c_smbus_write_byte( fd, txBuffer[0] );
+    useReg = 1;
+    tmpReg = txBuffer[0];
+    ret = i2c_smbus_write_quick( fd, txBuffer[0] );
   }else{
     //ret = i2c_smbus_write_byte( fd, txBuffer[0] );
+    useReg = 0;
     ret = i2c_smbus_write_i2c_block_data( fd, txBuffer[0], txBufferLength-1, txBuffer+1 );
     //ret = i2c_smbus_write_block_data( fd, txBuffer[0], txBufferLength-1, txBuffer+1 );
   }

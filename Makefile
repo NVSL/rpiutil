@@ -1,5 +1,15 @@
+all: install
 
-default:
+.PHONEY: include
+include:
+	@mkdir include
+
+.PHONEY: lib
+lib:
+	@mkdir lib
+
+.PHONEY: install
+install: include lib
 	@echo "Installing wiringPi"
 	@cd wiringPi; ./build uninstall; ./build
 	@echo "Install libArduino"
@@ -8,6 +18,9 @@ default:
 	@echo "Install libWire"
 	$(MAKE) -C arduino/libraries/Wire uninstall
 	$(MAKE) -C arduino/libraries/Wire install
+	@echo "Install libSPI"
+	$(MAKE) -C arduino/libraries/SPI uninstall
+	$(MAKE) -C arduino/libraries/SPI install
 
 clean:
 	@echo "Uninstall wiringPi"
@@ -18,3 +31,8 @@ clean:
 	@echo "Uninstall libWire"
 	$(MAKE) -C arduino/libraries/Wire uninstall
 	$(MAKE) -C arduino/libraries/Wire clean
+	@echo "Uninstall libSPI"
+	$(MAKE) -C arduino/libraries/SPI uninstall
+	$(MAKE) -C arduino/libraries/SPI clean
+	@rm -rf lib
+	@rm -rf include

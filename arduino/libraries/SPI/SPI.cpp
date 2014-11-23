@@ -8,59 +8,102 @@
  * published by the Free Software Foundation.
  */
 
-#include "pins_arduino.h"
+#include <stdint.h>
+#include <fcntl.h>
+#include <errno.h>
+#include <string.h>
+#include <sys/ioctl.h>
+#include <linux/spi/spidev.h>
+
+#include <Arduino.h>
 #include "SPI.h"
 
 SPIClass SPI;
 
-void SPIClass::begin() {
+static uint8_t spiMode = 0x0;
+static uint8_t spiBPW = 8;
+static int fd;
+static int spiSpeed = 32000000;
+const static char       *spiDev0  = "/dev/spidev0.0" ;
+//const static char       *spiDev1  = "/dev/spidev0.1" ;
+const static int        fullSpeed = 32000000;
 
-  // Set SS to high so a connected chip will be "deselected" by default
-  digitalWrite(SS, HIGH);
-
-  // When the SS pin is set as OUTPUT, it can be used as
-  // a general purpose output port (it doesn't influence
-  // SPI operations).
-  pinMode(SS, OUTPUT);
-
-  // Warning: if the SS pin ever becomes a LOW INPUT then SPI
-  // automatically switches to Slave, so the data direction of
-  // the SS pin MUST be kept as OUTPUT.
-  SPCR |= _BV(MSTR);
-  SPCR |= _BV(SPE);
-
-  // Set direction register for SCK and MOSI pin.
-  // MISO pin automatically overrides to INPUT.
-  // By doing this AFTER enabling SPI, we avoid accidentally
-  // clocking in a single bit since the lines go directly
-  // from "input" to SPI control.  
-  // http://code.google.com/p/arduino/issues/detail?id=888
-  pinMode(SCK, OUTPUT);
-  pinMode(MOSI, OUTPUT);
+static int __spidev_set_mode( int fd, __u8 mode) {
+    __u8 test;
+    if (ioctl(fd, SPI_IOC_WR_MODE, &mode) == -1) {
+        return -1;
+    }
+    if (ioctl(fd, SPI_IOC_RD_MODE, &test) == -1) {
+        return -1;
+    }
+    if (test != mode) {
+        return -1;
+    }
+    return 0;
 }
 
+void SPIClass::begin() 
+{
+    if ((fd = open ( spiDev0, O_RDWR)) < 0){
+        printf("Unable to open SPI device: %s\n", spiDev0);
+        exit(1);
+    }
 
-void SPIClass::end() {
-  SPCR &= ~_BV(SPE);
+    if (ioctl (fd, SPI_IOC_WR_MODE, &spiMode) < 0){
+        printf("SPI Mode Change failure!\n");
+        exit(1);
+    }
+
+    if (ioctl (fd, SPI_IOC_WR_BITS_PER_WORD, &spiBPW) < 0){
+        exit(1);
+    }
+
+    if (ioctl (fd, SPI_IOC_WR_MAX_SPEED_HZ, &spiSpeed)   < 0){
+        printf("Failed to change SPI speed.\n");
+        exit(1);
+    }
+}
+
+void SPIClass::end() 
+{
 }
 
 void SPIClass::setBitOrder(uint8_t bitOrder)
 {
-  if(bitOrder == LSBFIRST) {
-    SPCR |= _BV(DORD);
-  } else {
-    SPCR &= ~(_BV(DORD));
-  }
+    if(bitOrder == LSBFIRST)
+        spiMode |= SPI_LSB_FIRST;
+    else if(bitOrder == MSBFIRST)
+        spiMode &= ~SPI_LSB_FIRST;
+    __spidev_set_mode(fd, spiMode);
 }
 
 void SPIClass::setDataMode(uint8_t mode)
 {
-  SPCR = (SPCR & ~SPI_MODE_MASK) | mode;
+    if(mode <= 3){
+        spiMode &= ~SPI_MODE_MASK;
+        spiMode |= mode;
+        __spidev_set_mode(fd, mode);
+    }
 }
 
 void SPIClass::setClockDivider(uint8_t rate)
 {
-  SPCR = (SPCR & ~SPI_CLOCK_MASK) | (rate & SPI_CLOCK_MASK);
-  SPSR = (SPSR & ~SPI_2XCLOCK_MASK) | ((rate >> 2) & SPI_2XCLOCK_MASK);
+    if(rate > SPI_CLOCK_DIV64)
+        rate = SPI_CLOCK_DIV64;
+    spiSpeed = fullSpeed >> rate;
 }
 
+byte SPIClass::transfer(byte data){
+    struct spi_ioc_transfer spi ;
+
+    spi.tx_buf        = (unsigned long)&data ;
+    spi.rx_buf        = (unsigned long)&data ;
+    spi.len           = 1 ;
+    spi.delay_usecs   = 0 ;
+    spi.speed_hz      = spiSpeed ;
+    spi.bits_per_word = spiBPW ;
+
+    if(ioctl (fd, SPI_IOC_MESSAGE(1), &spi) < 0)
+        return 0;
+    return data;
+}

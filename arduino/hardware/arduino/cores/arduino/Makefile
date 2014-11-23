@@ -28,6 +28,7 @@ SRC	=	 WString.cpp			\
 		 Print.cpp				\
 		 Stream.cpp				\
          WMath.cpp              \
+         HardwareSerial.cpp     \
          new.cpp                \
          wiring_shift.c         \
          wiringPulse.c          \
@@ -36,7 +37,7 @@ SRC	=	 WString.cpp			\
          softPwm.c              \
          piHiPri.c
 
-OBJ	= WString.o Print.o Stream.o WMath.o new.o wiring_shift.o \
+OBJ	= WString.o Print.o Stream.o WMath.o HardwareSerial.o new.o wiring_shift.o \
       wiringPulse.o wiringPi.o softTone.o softPwm.o piHiPri.o
 
 all:		$(DYNAMIC)
@@ -71,16 +72,20 @@ tags:	$(SRC)
 	@echo [ctags]
 	@ctags $(SRC)
 
+$(DESTDIR)$(PREFIX)/include/avr:
+	@mkdir $(DESTDIR)$(PREFIX)/include/avr
 
 .PHONEY:	install-headers
-install-headers:
+install-headers: $(DESTDIR)$(PREFIX)/include/avr
 	@echo "[Install Headers]"
 	@echo $(DESTDIR)$(PREFIX)/include
 	@install -m 0755 -d		    	$(DESTDIR)$(PREFIX)/include
+	@install -m 0644 avr/pgmspace.h		$(DESTDIR)$(PREFIX)/include/avr
 	@install -m 0644 wiringPi.h		$(DESTDIR)$(PREFIX)/include
 	@install -m 0644 Arduino.h		$(DESTDIR)$(PREFIX)/include
 	@install -m 0644 new.h		    $(DESTDIR)$(PREFIX)/include
 	@install -m 0644 Printable.h	$(DESTDIR)$(PREFIX)/include
+	@install -m 0644 HardwareSerial.h	$(DESTDIR)$(PREFIX)/include
 	@install -m 0644 binary.h		$(DESTDIR)$(PREFIX)/include
 	@install -m 0644 Print.h		$(DESTDIR)$(PREFIX)/include
 	@install -m 0644 Stream.h		$(DESTDIR)$(PREFIX)/include
@@ -106,10 +111,12 @@ install-static:	$(STATIC) install-headers
 uninstall:
 	@echo "[UnInstall]"
 	@echo $(DESTDIR)$(PREFIX)
+	@rm -rf $(DESTDIR)$(PREFIX)/include/avr
 	@rm -f $(DESTDIR)$(PREFIX)/include/wiringPi.h
 	@rm -f $(DESTDIR)$(PREFIX)/include/Arduino.h
 	@rm -f $(DESTDIR)$(PREFIX)/include/new.h
 	@rm -f $(DESTDIR)$(PREFIX)/include/Printable.h
+	@rm -f $(DESTDIR)$(PREFIX)/include/HardwareSerial.h
 	@rm -f $(DESTDIR)$(PREFIX)/include/binary.h
 	@rm -f $(DESTDIR)$(PREFIX)/include/Print.h
 	@rm -f $(DESTDIR)$(PREFIX)/include/Stream.h
@@ -127,6 +134,7 @@ depend:
 WString.o: WString.h
 Print.o: Arduino.h Print.h
 Stream.o: Arduino.h Stream.h
+HardwareSerial.o: Arduino.h Stream.h HardwareSerial.h
 WMath.o: 
 new.o: new.h
 wiring_shift.o: Arduino.h
