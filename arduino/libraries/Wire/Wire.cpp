@@ -208,7 +208,6 @@ void (*TwoWire::user_onRequest)(void);
 void (*TwoWire::user_onReceive)(int);
 
 // Constructors ////////////////////////////////////////////////////////////////
-
 TwoWire::TwoWire()
 {
 }
@@ -269,18 +268,28 @@ uint8_t TwoWire::requestFrom(uint8_t address, uint8_t quantity, uint8_t sendStop
   uint8_t reg = 0x0;
   if(useReg)
     reg = tmpReg;
-  // printf("request %d bytes from register 0x%02X on address %02X\n", quantity, reg, address);
-  // printf("fd: %d\n", fd);
-  int read = i2c_smbus_read_i2c_block_data( fd, reg, quantity, rxBuffer );
+  int read = 0;
+  if(quantity == 1){
+    read = i2c_smbus_read_byte( fd );
+    rxBuffer[0] = read;
+    rxBufferLength = 1;
+  }
+  else{
+    read = i2c_smbus_read_i2c_block_data( fd, reg, quantity, rxBuffer );
   // set rx buffer iterator vars
+    rxBufferLength = read;
+  }
   rxBufferIndex = 0;
-  rxBufferLength = read;
-  // printf("Values: ");
-  // for (int i = 0; i < rxBufferLength; ++i){
-  //   printf("0x%02X ", rxBuffer[i]);
-  // }
-  // puts("");
-
+  /*
+  printf("request %d bytes from register 0x%02X on address %02X\n", quantity, reg, address);
+  printf("fd: %d\n", fd);
+  printf("bufferLength %d\n", rxBufferLength);
+  printf("Values: ");
+  for (int i = 0; i < rxBufferLength; ++i){
+    printf("0x%02X ", rxBuffer[i]);
+  }
+  puts("");
+  */
   return read;
 }
 
@@ -347,8 +356,8 @@ uint8_t TwoWire::endTransmission(uint8_t sendStop)
   if( txBufferLength == 1 ){
     useReg = 1;
     tmpReg = txBuffer[0];
-    //ret = i2c_smbus_write_byte( fd, txBuffer[0] );
-    ret = i2c_smbus_write_quick( fd, txBuffer[0] );
+    ret = i2c_smbus_write_byte( fd, txBuffer[0] );
+    //ret = i2c_smbus_write_quick( fd, txBuffer[0] );
   }else{
     //ret = i2c_smbus_write_byte( fd, txBuffer[0] );
     useReg = 0;
