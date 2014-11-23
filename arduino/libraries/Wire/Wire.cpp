@@ -255,9 +255,9 @@ uint8_t TwoWire::requestFrom(uint8_t address, uint8_t quantity, uint8_t sendStop
       printf("Unable to open I2C device /dev/i2c-1, try to run it in privileged mode.\n");
       exit( 1 );
     }
-    if( ioctl( fd, I2C_SLAVE, address ) < 0 ){
-      printf("Unable to select I2C device at %2x.\n", address);
-    }
+  }
+  if( ioctl( fd, I2C_SLAVE, address ) < 0 ){
+    printf("Unable to select I2C device at %2x.\n", address);
   }
   // clamp to buffer length
   if(quantity > BUFFER_LENGTH){
@@ -269,10 +269,17 @@ uint8_t TwoWire::requestFrom(uint8_t address, uint8_t quantity, uint8_t sendStop
   uint8_t reg = 0x0;
   if(useReg)
     reg = tmpReg;
+  printf("request %d bytes from register 0x%02X on address %02X\n", quantity, reg, address);
+  printf("fd: %d\n", fd);
   int read = i2c_smbus_read_i2c_block_data( fd, reg, quantity, rxBuffer );
   // set rx buffer iterator vars
   rxBufferIndex = 0;
   rxBufferLength = read;
+  printf("Values: ");
+  for (int i = 0; i < rxBufferLength; ++i){
+    printf("0x%02X ", rxBuffer[i]);
+  }
+  puts("");
 
   return read;
 }
@@ -300,9 +307,9 @@ void TwoWire::beginTransmission(uint8_t address)
       printf("Unable to open I2C device /dev/i2c-1, try to run it in privileged mode.\n");
       exit( 1 );
     }
-    if( ioctl( fd, I2C_SLAVE, address ) < 0 ){
-      printf("Unable to select I2C device at %2x.\n", address);
-    }
+  }
+  if( ioctl( fd, I2C_SLAVE, address ) < 0 ){
+    printf("Unable to select I2C device at %2x.\n", address);
   }
   // indicate that we are transmitting
   transmitting = 1;
