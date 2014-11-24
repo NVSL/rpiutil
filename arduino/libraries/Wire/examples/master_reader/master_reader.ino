@@ -16,7 +16,7 @@
 void setup()
 {
   Wire.begin();        // join i2c bus (address optional for master)
-  //Serial.begin(9600);  // start serial for output
+  Serial.begin(9600);  // start serial for output
 }
 
 void loop()
@@ -26,10 +26,9 @@ void loop()
   while(Wire.available())    // slave may send less than requested
   { 
     char c = Wire.read(); // receive a byte as character
-    //Serial.print(c);         // print the character
-    printf("%c", c);
+    Serial.print(c);         // print the character
   }
-  printf("\n");
+  Serial.println();
 
   delay(500);
 }
