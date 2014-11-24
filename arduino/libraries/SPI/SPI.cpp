@@ -9,6 +9,7 @@
  */
 
 #include <stdint.h>
+#include <unistd.h>
 #include <fcntl.h>
 #include <errno.h>
 #include <string.h>
@@ -20,16 +21,20 @@
 
 SPIClass SPI;
 
+#define DEBUG 0
+const static char       *spiDev0  = "/dev/spidev0.0" ;
+//const static char       *spiDev1  = "/dev/spidev0.1" ;
+const static int        fullSpeed = 16000000;
 static uint8_t spiMode = 0x0;
 static uint8_t spiBPW = 8;
 static int fd;
-static int spiSpeed = 32000000;
-const static char       *spiDev0  = "/dev/spidev0.0" ;
-//const static char       *spiDev1  = "/dev/spidev0.1" ;
-const static int        fullSpeed = 32000000;
+static int spiSpeed = fullSpeed;
 
 static int __spidev_set_mode( int fd, __u8 mode) {
     __u8 test;
+    if(DEBUG){
+        printf("__spidev_set_mode 0x%02X\n", mode);
+    }
     if (ioctl(fd, SPI_IOC_WR_MODE, &mode) == -1) {
         return -1;
     }
@@ -55,6 +60,7 @@ void SPIClass::begin()
     }
 
     if (ioctl (fd, SPI_IOC_WR_BITS_PER_WORD, &spiBPW) < 0){
+        printf("Failed to change BPW!\n");
         exit(1);
     }
 
@@ -66,10 +72,18 @@ void SPIClass::begin()
 
 void SPIClass::end() 
 {
+    if(close( fd ) < 0){
+        printf("Failed to close SPI dev!\n");
+        exit(1);
+    }
 }
 
 void SPIClass::setBitOrder(uint8_t bitOrder)
 {
+    if(DEBUG){
+        printf("setBitOrder %s\n", bitOrder == LSBFIRST ? 
+        "LSBFIRST" : "MSBFIRST");
+    }
     if(bitOrder == LSBFIRST)
         spiMode |= SPI_LSB_FIRST;
     else if(bitOrder == MSBFIRST)
@@ -79,6 +93,9 @@ void SPIClass::setBitOrder(uint8_t bitOrder)
 
 void SPIClass::setDataMode(uint8_t mode)
 {
+    if(DEBUG){
+        printf("setDataMode 0x%02X\n", mode);
+    }
     if(mode <= 3){
         spiMode &= ~SPI_MODE_MASK;
         spiMode |= mode;
@@ -88,13 +105,23 @@ void SPIClass::setDataMode(uint8_t mode)
 
 void SPIClass::setClockDivider(uint8_t rate)
 {
+    if(DEBUG){
+        printf("setClockDivider %d\n", rate);
+    }
     if(rate > SPI_CLOCK_DIV64)
         rate = SPI_CLOCK_DIV64;
     spiSpeed = fullSpeed >> rate;
+    if (ioctl (fd, SPI_IOC_WR_MAX_SPEED_HZ, &spiSpeed)   < 0){
+        printf("Failed to change SPI speed.\n");
+        exit(1);
+    }
 }
 
 byte SPIClass::transfer(byte data){
     struct spi_ioc_transfer spi ;
+    if(DEBUG){
+        printf("sent 0x%02X\n", data);
+    }
 
     spi.tx_buf        = (unsigned long)&data ;
     spi.rx_buf        = (unsigned long)&data ;
@@ -105,5 +132,8 @@ byte SPIClass::transfer(byte data){
 
     if(ioctl (fd, SPI_IOC_MESSAGE(1), &spi) < 0)
         return 0;
+    if(DEBUG){
+        printf("got 0x%02x\n", data);
+    }
     return data;
 }
