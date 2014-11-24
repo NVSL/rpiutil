@@ -1317,6 +1317,7 @@ void digitalWrite (uint8_t pin, uint8_t value)
       *(gpio + gpioToGPCLR [pin]) = 1 << (pin & 31) ;
     else
       *(gpio + gpioToGPSET [pin]) = 1 << (pin & 31) ;
+    //printf("digitalWrite %d\n", value);
   }
   else
   {

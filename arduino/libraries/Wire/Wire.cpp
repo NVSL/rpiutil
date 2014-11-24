@@ -36,6 +36,7 @@ extern "C" {
 //In case <linux/i2c-dev.h> is incomplete
 #ifndef I2C_DEV_H
 #define I2C_DEV_H
+#define DEBUG 0
 static inline __s32 i2c_smbus_access(int file, char read_write, __u8 command, 
                                      int size, union i2c_smbus_data *data)
 {
@@ -280,16 +281,16 @@ uint8_t TwoWire::requestFrom(uint8_t address, uint8_t quantity, uint8_t sendStop
     rxBufferLength = read;
   }
   rxBufferIndex = 0;
-  /*
-  printf("request %d bytes from register 0x%02X on address %02X\n", quantity, reg, address);
-  printf("fd: %d\n", fd);
-  printf("bufferLength %d\n", rxBufferLength);
-  printf("Values: ");
-  for (int i = 0; i < rxBufferLength; ++i){
-    printf("0x%02X ", rxBuffer[i]);
+  if(DEBUG){
+    printf("request %d bytes from register 0x%02X on address %02X\n", quantity, reg, address);
+    printf("fd: %d\n", fd);
+    printf("bufferLength %d\n", rxBufferLength);
+    printf("Values: ");
+    for (int i = 0; i < rxBufferLength; ++i){
+      printf("0x%02X ", rxBuffer[i]);
+    }
+    puts("");
   }
-  puts("");
-  */
   return read;
 }
 
@@ -364,7 +365,9 @@ uint8_t TwoWire::endTransmission(uint8_t sendStop)
     ret = i2c_smbus_write_i2c_block_data( fd, txBuffer[0], txBufferLength-1, txBuffer+1 );
     //ret = i2c_smbus_write_block_data( fd, txBuffer[0], txBufferLength-1, txBuffer+1 );
   }
-  // printf("endTransmission get status %d\n", ret);
+  if(DEBUG){
+    printf("endTransmission get status %d\n", ret);
+  }
   // reset tx buffer iterator vars
   txBufferIndex = 0;
   txBufferLength = 0;
