@@ -39,7 +39,7 @@
 #include <LiquidCrystal.h>
 
 // initialize the library with the numbers of the interface pins
-LiquidCrystal lcd(12, 11, 5, 4, 3, 2);
+LiquidCrystal lcd(12, 5, 21, 20, 19, 13);
 
 // make some custom characters:
 byte heart[8] = {
@@ -112,25 +112,53 @@ void setup() {
   lcd.begin(16, 2);
   // Print a message to the lcd.
   lcd.print("I "); 
-  lcd.write(0);
+  lcd.write((uint8_t)0);
   lcd.print(" Arduino! ");
-  lcd.write(1);
+  lcd.write((uint8_t)1);
 
 }
 
 void loop() {
-  // read the potentiometer on A0:
-  int sensorReading = analogRead(A0);
   // map the result to 200 - 1000:
-  int delayTime = map(sensorReading, 0, 1023, 200, 1000);
+  int delayTime = 1000;
   // set the cursor to the bottom row, 5th position:
-  lcd.setCursor(4, 1);
+  lcd.setCursor(0, 1);
   // draw the little man, arms down:
-  lcd.write(3);
+  lcd.write((uint8_t)3);
+  lcd.write((uint8_t)4);
+  lcd.write((uint8_t)3);
+  lcd.write((uint8_t)4);
+  lcd.write((uint8_t)3);
+  lcd.write((uint8_t)4);
+  lcd.write((uint8_t)3);
+  lcd.write((uint8_t)4);
+  lcd.write((uint8_t)3);
+  lcd.write((uint8_t)4);
+  lcd.write((uint8_t)3);
+  lcd.write((uint8_t)4);
+  lcd.write((uint8_t)3);
+  lcd.write((uint8_t)4);
+  lcd.write((uint8_t)3);
+  lcd.write((uint8_t)4);
   delay(delayTime);
-  lcd.setCursor(4, 1);
+  lcd.setCursor(0, 1);
   // draw him arms up:
-  lcd.write(4);
+  lcd.write((uint8_t)4);
+  lcd.write((uint8_t)3);
+  lcd.write((uint8_t)4);
+  lcd.write((uint8_t)3);
+  lcd.write((uint8_t)4);
+  lcd.write((uint8_t)3);
+  lcd.write((uint8_t)4);
+  lcd.write((uint8_t)3);
+  lcd.write((uint8_t)4);
+  lcd.write((uint8_t)3);
+  lcd.write((uint8_t)4);
+  lcd.write((uint8_t)3);
+  lcd.write((uint8_t)4);
+  lcd.write((uint8_t)3);
+  lcd.write((uint8_t)4);
+  lcd.write((uint8_t)3);
   delay(delayTime); 
 }
 

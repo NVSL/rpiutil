@@ -49,8 +49,20 @@ def install(opts, sopath):
         os.system('cp %s %s' % (header, includepath))
 
 def uninstall(libname):
-    assert libname
-    print "TODO"
+    assert libname and libname.endswith('.so')
+    path = '/'.join(libname.split('/')[:-1])
+    if not path:
+        path = '.'
+    library = libname.split('/')[-1]
+    assert library in os.listdir(libpath)
+    headers = [includepath + '/' + f for f in os.listdir(path) if f in os.listdir(includepath) and f.endswith('.h')]
+    print 'rm %s' % libname
+    os.system('rm %s' % libname)
+    print 'rm %s/%s' % (libpath, library)
+    os.system('rm %s/%s' % (libpath, library))
+    for header in headers:
+        print 'rm %s' % header
+        os.system('rm %s' % header)
 
 if __name__ == "__main__":
     assert 'GADGETRON_RASPI_PATH' in os.environ
