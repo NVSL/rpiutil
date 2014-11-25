@@ -86,6 +86,7 @@ extern "C"{
 
 typedef unsigned int word;
 
+#define _BV(bit) (1 << (bit))
 #define bit(b) (1UL << (b))
 
 typedef uint8_t boolean;
