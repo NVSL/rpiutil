@@ -4,7 +4,10 @@
 4. tone/noTone...   //Done
 5. shiftIn/Out  //Done
 6. pulseIn      //Done
-7. Serial/USB
+7. Serial/USB   //Done
 8. analogRW
 9. PWM
 10. Pull-up/Pull-down   //Done
+11. I2C //Done
+12. SPI //Done
+13. LiquidCrystal   //Done

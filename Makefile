@@ -21,6 +21,9 @@ install: include lib
 	@echo "Install libSPI"
 	$(MAKE) -C arduino/libraries/SPI uninstall
 	$(MAKE) -C arduino/libraries/SPI install
+	@echo "Install libLiquidCrystal"
+	$(MAKE) -C arduino/libraries/LiquidCrystal uninstall
+	$(MAKE) -C arduino/libraries/LiquidCrystal install
 
 clean:
 	@echo "Uninstall wiringPi"
@@ -34,5 +37,8 @@ clean:
 	@echo "Uninstall libSPI"
 	$(MAKE) -C arduino/libraries/SPI uninstall
 	$(MAKE) -C arduino/libraries/SPI clean
+	@echo "Uninstall libLiquidCrystal"
+	$(MAKE) -C arduino/libraries/LiquidCrystal uninstall
+	$(MAKE) -C arduino/libraries/LiquidCrystal clean
 	@rm -rf lib
 	@rm -rf include

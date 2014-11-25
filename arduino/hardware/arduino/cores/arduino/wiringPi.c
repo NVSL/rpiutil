@@ -85,6 +85,7 @@
 
 #define	ENV_DEBUG	"WIRINGPI_DEBUG"
 #define	ENV_CODES	"WIRINGPI_CODES"
+#define DEBUG 0
 
 
 // Mask for the bottom 64 pins which belong to the Raspberry Pi
@@ -1317,7 +1318,9 @@ void digitalWrite (uint8_t pin, uint8_t value)
       *(gpio + gpioToGPCLR [pin]) = 1 << (pin & 31) ;
     else
       *(gpio + gpioToGPSET [pin]) = 1 << (pin & 31) ;
-    //printf("digitalWrite %d\n", value);
+    if(DEBUG){
+        printf("digitalWrite %d on pin%d\n", value, pin);
+    }
   }
   else
   {
