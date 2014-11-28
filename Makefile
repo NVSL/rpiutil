@@ -7,6 +7,7 @@ include:
 .PHONEY: lib
 lib:
 	@mkdir lib
+	@mkdir lib/python
 
 .PHONEY: install
 install: include lib

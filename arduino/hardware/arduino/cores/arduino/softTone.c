@@ -44,6 +44,7 @@ static unsigned long durations[MAX_PINS];
 static int newPin = -1 ;
 static int newNoTonePin = -1 ;
 
+void softToneStop (int pin);
 
 /*
  * softToneThread:

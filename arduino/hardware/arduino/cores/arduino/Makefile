@@ -9,7 +9,7 @@ VERSION=$(DYN_VERS_MAJ).$(DYN_VERS_MIN)
 DESTDIR=$(GADGETRON_RASPI_PATH)
 PREFIX=
 
-STATIC=libArduino.a
+#STATIC=libArduino.a
 DYNAMIC=libArduino.so.$(VERSION)
 
 #DEBUG	= -g -O0
@@ -29,7 +29,6 @@ SRC	=	 WString.cpp			\
 		 Stream.cpp				\
          WMath.cpp              \
          HardwareSerial.cpp     \
-         new.cpp                \
          wiring_shift.c         \
          wiringPulse.c          \
 		 wiringPi.c             \
@@ -37,17 +36,17 @@ SRC	=	 WString.cpp			\
          softPwm.c              \
          piHiPri.c
 
-OBJ	= WString.o Print.o Stream.o WMath.o HardwareSerial.o new.o wiring_shift.o \
+OBJ	= WString.o Print.o Stream.o WMath.o HardwareSerial.o wiring_shift.o \
       wiringPulse.o wiringPi.o softTone.o softPwm.o piHiPri.o
 
 all:		$(DYNAMIC)
 
-static:		$(STATIC)
+#static:		$(STATIC)
 
-$(STATIC):	$(OBJ)
-	@echo "[Link (Static)]"
-	@ar rcs $(STATIC) $(OBJ)
-	@ranlib $(STATIC)
+#$(STATIC):	$(OBJ)
+#	@echo "[Link (Static)]"
+#	@ar rcs $(STATIC) $(OBJ)
+#	@ranlib $(STATIC)
 #	@size   $(STATIC)
 
 $(DYNAMIC):	$(OBJ)
@@ -62,10 +61,15 @@ $(DYNAMIC):	$(OBJ)
 	@echo [Compile] $<
 	@$(CC) -c $(CFLAGS) $< -o $@
 
+python: $(DYNAMIC) Arduino.i
+	@echo [Making python binding]
+	@swig -c++ -python -I/usr/include Arduino.i
+	@$(CC) -shared -fPIC -I/usr/include/python2.7 -I. libArduino.so.$(VERSION) -o _Arduino.so Arduino_wrap.cxx
+
 .PHONEY:	clean
 clean:
 	@echo "[Clean]"
-	@rm -f $(OBJ) *~ core tags Makefile.bak libArduino.*
+	@rm -f $(OBJ) *~ core tags Makefile.bak libArduino.* Arduino.py* Arduino_wrap.* _Arduino.so
 
 .PHONEY:	tags
 tags:	$(SRC)
@@ -83,7 +87,6 @@ install-headers: $(DESTDIR)$(PREFIX)/include/avr
 	@install -m 0644 avr/pgmspace.h		$(DESTDIR)$(PREFIX)/include/avr
 	@install -m 0644 wiringPi.h		$(DESTDIR)$(PREFIX)/include
 	@install -m 0644 Arduino.h		$(DESTDIR)$(PREFIX)/include
-	@install -m 0644 new.h		    $(DESTDIR)$(PREFIX)/include
 	@install -m 0644 Printable.h	$(DESTDIR)$(PREFIX)/include
 	@install -m 0644 HardwareSerial.h	$(DESTDIR)$(PREFIX)/include
 	@install -m 0644 binary.h		$(DESTDIR)$(PREFIX)/include
@@ -93,19 +96,21 @@ install-headers: $(DESTDIR)$(PREFIX)/include/avr
 	@install -m 0644 WString.h		$(DESTDIR)$(PREFIX)/include
 
 .PHONEY:	install
-install:	$(DYNAMIC) install-headers
+install:	$(DYNAMIC) python install-headers
 	@echo "[Install Dynamic Lib]"
 	@echo $(DESTDIR)$(PREFIX)/lib
 	@install -m 0755 -d						$(DESTDIR)$(PREFIX)/lib
+	@install -m 0755 _Arduino.so			$(DESTDIR)$(PREFIX)/lib/python/_Arduino.so
+	@install -m 0755 Arduino.py				$(DESTDIR)$(PREFIX)/lib/python/Arduino.py
 	@install -m 0755 libArduino.so.$(VERSION)			$(DESTDIR)$(PREFIX)/lib/libArduino.so.$(VERSION)
 	@ln -sf $(DESTDIR)$(PREFIX)/lib/libArduino.so.$(VERSION)	$(DESTDIR)/lib/libArduino.so
 #	@ldconfig
 
-.PHONEY:	install-static
-install-static:	$(STATIC) install-headers
-	@echo "[Install Static Lib]"
-	@install -m 0755 -d			$(DESTDIR)$(PREFIX)/lib
-	@install -m 0755 libArduino.a		$(DESTDIR)$(PREFIX)/lib
+#.PHONEY:	install-static
+#install-static:	$(STATIC) install-headers
+#	@echo "[Install Static Lib]"
+#	@install -m 0755 -d			$(DESTDIR)$(PREFIX)/lib
+#	@install -m 0755 libArduino.a		$(DESTDIR)$(PREFIX)/lib
 
 .PHONEY:	uninstall
 uninstall:
@@ -114,7 +119,6 @@ uninstall:
 	@rm -rf $(DESTDIR)$(PREFIX)/include/avr
 	@rm -f $(DESTDIR)$(PREFIX)/include/wiringPi.h
 	@rm -f $(DESTDIR)$(PREFIX)/include/Arduino.h
-	@rm -f $(DESTDIR)$(PREFIX)/include/new.h
 	@rm -f $(DESTDIR)$(PREFIX)/include/Printable.h
 	@rm -f $(DESTDIR)$(PREFIX)/include/HardwareSerial.h
 	@rm -f $(DESTDIR)$(PREFIX)/include/binary.h
@@ -123,6 +127,8 @@ uninstall:
 	@rm -f $(DESTDIR)$(PREFIX)/include/WCharacter.h
 	@rm -f $(DESTDIR)$(PREFIX)/include/WString.h
 	@rm -f $(DESTDIR)$(PREFIX)/lib/libArduino.*
+	@rm -f $(DESTDIR)$(PREFIX)/lib/python/_Arduino.so
+	@rm -f $(DESTDIR)$(PREFIX)/lib/python/Arduino.py
 	@rm -f $(DESTDIR)/lib/libArduino.*
 #	@ldconfig
 
@@ -136,10 +142,9 @@ Print.o: Arduino.h Print.h
 Stream.o: Arduino.h Stream.h
 HardwareSerial.o: Arduino.h Stream.h HardwareSerial.h
 WMath.o: 
-new.o: new.h
 wiring_shift.o: Arduino.h
 wiringPulse.o: Arduino.h
 wiringPi.o: softTone.h softPwm.h wiringPi.h Arduino.h
-softTone.o: softTone.h wiringPi.h
+softTone.o: wiringPi.h softTone.h
 softPwm.o: softPwm.h wiringPi.h
 piHiPri.o: wiringPi.h
