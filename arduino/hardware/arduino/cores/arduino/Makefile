@@ -11,6 +11,7 @@ PREFIX=
 
 #STATIC=libArduino.a
 DYNAMIC=libArduino.so.$(VERSION)
+PYTHON=_Arduino.so Arduino.py
 
 #DEBUG	= -g -O0
 DEBUG	= -O2
@@ -39,7 +40,7 @@ SRC	=	 WString.cpp			\
 OBJ	= WString.o Print.o Stream.o WMath.o HardwareSerial.o wiring_shift.o \
       wiringPulse.o wiringPi.o softTone.o softPwm.o piHiPri.o
 
-all:		$(DYNAMIC)
+all:		$(DYNAMIC) $(PYTHON)
 
 #static:		$(STATIC)
 
@@ -61,7 +62,7 @@ $(DYNAMIC):	$(OBJ)
 	@echo [Compile] $<
 	@$(CC) -c $(CFLAGS) $< -o $@
 
-python: $(DYNAMIC) Arduino.i
+$(PYTHON): $(DYNAMIC) Arduino.i
 	@echo [Making python binding]
 	@swig -c++ -python -I/usr/include Arduino.i
 	@$(CC) -shared -fPIC -I/usr/include/python2.7 -I. libArduino.so.$(VERSION) -o _Arduino.so Arduino_wrap.cxx
@@ -96,7 +97,7 @@ install-headers: $(DESTDIR)$(PREFIX)/include/avr
 	@install -m 0644 WString.h		$(DESTDIR)$(PREFIX)/include
 
 .PHONEY:	install
-install:	$(DYNAMIC) python install-headers
+install:	$(DYNAMIC) $(PYTHON) install-headers
 	@echo "[Install Dynamic Lib]"
 	@echo $(DESTDIR)$(PREFIX)/lib
 	@install -m 0755 -d						$(DESTDIR)$(PREFIX)/lib
@@ -128,7 +129,7 @@ uninstall:
 	@rm -f $(DESTDIR)$(PREFIX)/include/WString.h
 	@rm -f $(DESTDIR)$(PREFIX)/lib/libArduino.*
 	@rm -f $(DESTDIR)$(PREFIX)/lib/python/_Arduino.so
-	@rm -f $(DESTDIR)$(PREFIX)/lib/python/Arduino.py
+	@rm -f $(DESTDIR)$(PREFIX)/lib/python/Arduino.py*
 	@rm -f $(DESTDIR)/lib/libArduino.*
 #	@ldconfig
 

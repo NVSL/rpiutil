@@ -104,4 +104,15 @@ private:
   uint8_t _numlines,_currline;
 };
 
+/*********** mid level commands, for sending data/cmds */
+
+inline void LiquidCrystal::command(uint8_t value) {
+  send(value, LOW);
+}
+
+inline size_t LiquidCrystal::write(uint8_t value) {
+  send(value, HIGH);
+  return 1; // assume sucess
+}
+
 #endif

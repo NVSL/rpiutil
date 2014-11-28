@@ -252,17 +252,6 @@ void LiquidCrystal::createChar(uint8_t location, uint8_t charmap[]) {
   }
 }
 
-/*********** mid level commands, for sending data/cmds */
-
-inline void LiquidCrystal::command(uint8_t value) {
-  send(value, LOW);
-}
-
-inline size_t LiquidCrystal::write(uint8_t value) {
-  send(value, HIGH);
-  return 1; // assume sucess
-}
-
 /************ low level data pushing commands **********/
 
 // write either command or data, with automatic 4/8-bit selection
