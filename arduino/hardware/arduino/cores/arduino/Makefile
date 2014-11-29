@@ -52,7 +52,7 @@ all:		$(DYNAMIC) $(PYTHON)
 
 $(DYNAMIC):	$(OBJ)
 	@echo "[Link (Dynamic)]" 
-	@$(CC) -shared -Wl,-soname,libArduino.so -o libArduino.so.$(VERSION) -lpthread $(OBJ)
+	@$(CC) -shared -Wl,-soname,libArduino.so -o libArduino.so.$(VERSION) -lpthread -lrt $(OBJ)
 
 .cpp.o:
 	@echo [Compile] $<

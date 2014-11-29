@@ -85,7 +85,7 @@
 
 #define	ENV_DEBUG	"WIRINGPI_DEBUG"
 #define	ENV_CODES	"WIRINGPI_CODES"
-#define DEBUG 0
+#define DEBUG 1
 
 
 // Mask for the bottom 64 pins which belong to the Raspberry Pi
@@ -1662,12 +1662,18 @@ static void initialiseEpoch (void)
 
 void delay (unsigned long howLong)
 {
-  struct timespec sleeper, dummy ;
+  struct timespec req, rem ;
 
-  sleeper.tv_sec  = (time_t)(howLong / 1000) ;
-  sleeper.tv_nsec = (long)(howLong % 1000) * 1000000 ;
+  req.tv_sec  = (time_t)(howLong / 1000) ;
+  req.tv_nsec = (long)(howLong % 1000) * 1000000 ;
 
-  nanosleep (&sleeper, &dummy) ;
+  while (clock_nanosleep(CLOCK_REALTIME, 0, &req, &rem)){
+    req.tv_sec  = rem.tv_sec;
+    req.tv_nsec = rem.tv_nsec;
+    if(DEBUG){
+      printf("Interrupt!\n");
+    }
+  }
 }
 
 
@@ -1704,7 +1710,7 @@ void delayMicrosecondsHard (unsigned int howLong)
 
 void delayMicroseconds (unsigned int howLong)
 {
-  struct timespec sleeper ;
+  struct timespec req, rem ;
   unsigned int uSecs = howLong % 1000000 ;
   unsigned int wSecs = howLong / 1000000 ;
 
@@ -1714,9 +1720,13 @@ void delayMicroseconds (unsigned int howLong)
     delayMicrosecondsHard (howLong) ;
   else
   {
-    sleeper.tv_sec  = wSecs ;
-    sleeper.tv_nsec = (long)(uSecs * 1000L) ;
-    nanosleep (&sleeper, NULL) ;
+    req.tv_sec = wSecs;
+    req.tv_nsec = (long)(uSecs * 1000L);
+
+    while (clock_nanosleep(CLOCK_REALTIME, 0, &req, &rem)){
+      req.tv_sec  = rem.tv_sec;
+      req.tv_nsec = rem.tv_nsec;
+    }
   }
 }
 
