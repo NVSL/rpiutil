@@ -85,7 +85,7 @@
 
 #define	ENV_DEBUG	"WIRINGPI_DEBUG"
 #define	ENV_CODES	"WIRINGPI_CODES"
-#define DEBUG 1
+//#define DEBUG_WIRINGPI
 
 
 // Mask for the bottom 64 pins which belong to the Raspberry Pi
@@ -139,9 +139,12 @@ struct wiringPiNodeStruct *wiringPiNodes = NULL ;
 #define GPIO_BASE		(BCM2708_PERI_BASE + 0x00200000)
 #define GPIO_TIMER		(BCM2708_PERI_BASE + 0x0000B000)
 #define GPIO_PWM		(BCM2708_PERI_BASE + 0x0020C000)
+#define SYST_BASE       (BCM2708_PERI_BASE + 0x00003000)
 
 #define	PAGE_SIZE		(4*1024)
 #define	BLOCK_SIZE		(4*1024)
+
+#define SYST_CLO        1
 
 // PWM
 //	Word offsets into the PWM control region
@@ -193,6 +196,7 @@ static volatile uint32_t *gpio ;
 static volatile uint32_t *pwm ;
 static volatile uint32_t *clk ;
 static volatile uint32_t *pads ;
+static volatile uint32_t *systReg ;
 
 #ifdef	USE_TIMER
 static volatile uint32_t *timer ;
@@ -1270,6 +1274,26 @@ int digitalRead (uint8_t pin)
   }
 }
 
+int digitalReadQuick(uint8_t pin){
+#ifdef DEBUG_WIRINGPI
+    printf("digitalReadQuick on pin %d\n", pin);
+#endif
+    if ((*(gpio + gpioToGPLEV [pin]) & (1 << (pin & 31))))
+      return HIGH ;
+    else
+      return LOW ;
+}
+
+void digitalWriteQuick(uint8_t pin, uint8_t value){
+    //initWiringPi();
+    if (value == LOW)
+      *(gpio + gpioToGPCLR [pin]) = 1 << (pin & 31) ;
+    else
+      *(gpio + gpioToGPSET [pin]) = 1 << (pin & 31) ;
+#ifdef DEBUG_WIRINGPI
+    printf("digitalWriteQuick %d on pin%d\n", value, pin);
+#endif
+}
 
 /*
  * digitalWrite:
@@ -1318,9 +1342,9 @@ void digitalWrite (uint8_t pin, uint8_t value)
       *(gpio + gpioToGPCLR [pin]) = 1 << (pin & 31) ;
     else
       *(gpio + gpioToGPSET [pin]) = 1 << (pin & 31) ;
-    if(DEBUG){
-        printf("digitalWrite %d on pin%d\n", value, pin);
-    }
+#ifdef DEBUG_WIRINGPI
+    printf("digitalWrite %d on pin%d\n", value, pin);
+#endif
   }
   else
   {
@@ -1482,7 +1506,6 @@ void digitalWriteByte (int value)
 
 int waitForInterrupt (int pin, int mS)
 {
-  initWiringPi();
   int fd, x ;
   uint8_t c ;
   struct pollfd polls ;
@@ -1531,8 +1554,11 @@ static void *interruptHandler (void *arg)
   pinPass = -1 ;
 
   for (;;)
-    if (waitForInterrupt (myPin, -1) > 0)
+    if (waitForInterrupt (myPin, -1) > 0){
+      if(isrFunctions[myPin] == NULL)
+        return NULL;
       isrFunctions [myPin] () ;
+    }
 
   return NULL ;
 }
@@ -1548,6 +1574,7 @@ static void *interruptHandler (void *arg)
 
 int wiringPiISR (int pin, int mode, void (*function)(void))
 {
+  initWiringPi();
   pthread_t threadId ;
   const char *modeS ;
   char fName   [64] ;
@@ -1624,14 +1651,20 @@ int wiringPiISR (int pin, int mode, void (*function)(void))
   for (i = 0 ; i < count ; ++i)
     read (sysFds [bcmGpioPin], &c, 1) ;
 
+  bool newThread = isrFunctions [pin] == NULL;
   isrFunctions [pin] = function ;
 
+  if(newThread && function){
+#ifdef DEBUG_WIRINGPI
+    printf("Creating pthread for interrupt on pin %d\n", pin);
+#endif
   pthread_mutex_lock (&pinMutex) ;
     pinPass = pin ;
     pthread_create (&threadId, NULL, interruptHandler, NULL) ;
     while (pinPass != -1)
       delay (1) ;
   pthread_mutex_unlock (&pinMutex) ;
+  }
 
   return 0 ;
 }
@@ -1670,9 +1703,9 @@ void delay (unsigned long howLong)
   while (clock_nanosleep(CLOCK_REALTIME, 0, &req, &rem)){
     req.tv_sec  = rem.tv_sec;
     req.tv_nsec = rem.tv_nsec;
-    if(DEBUG){
-      printf("Interrupt!\n");
-    }
+#ifdef DEBUG_WIRINGPI
+    printf("Interrupt!\n");
+#endif
   }
 }
 
@@ -1697,29 +1730,23 @@ void delay (unsigned long howLong)
 
 void delayMicrosecondsHard (unsigned int howLong)
 {
-  struct timeval tNow, tLong, tEnd ;
+  uint64_t until = tick() + howLong;
 
-  gettimeofday (&tNow, NULL) ;
-  tLong.tv_sec  = howLong / 1000000 ;
-  tLong.tv_usec = howLong % 1000000 ;
-  timeradd (&tNow, &tLong, &tEnd) ;
-
-  while (timercmp (&tNow, &tEnd, <))
-    gettimeofday (&tNow, NULL) ;
+  while (tick() < until);
 }
 
 void delayMicroseconds (unsigned int howLong)
 {
-  struct timespec req, rem ;
-  unsigned int uSecs = howLong % 1000000 ;
-  unsigned int wSecs = howLong / 1000000 ;
-
   /**/ if (howLong ==   0)
     return ;
   else if (howLong  < 100)
     delayMicrosecondsHard (howLong) ;
   else
   {
+    struct timespec req, rem ;
+    unsigned int uSecs = howLong % 1000000 ;
+    unsigned int wSecs = howLong / 1000000 ;
+
     req.tv_sec = wSecs;
     req.tv_nsec = (long)(uSecs * 1000L);
 
@@ -1764,6 +1791,11 @@ unsigned long micros (void)
   now  = (uint64_t)tv.tv_sec * (uint64_t)1000000 + (uint64_t)tv.tv_usec ;
 
   return (now - epochMicro) ;
+}
+
+uint64_t tick (void)
+{
+    return (*(uint64_t *)((char *)systReg + 4));
 }
 
 
@@ -1815,6 +1847,12 @@ int wiringPiSetup (void)
 
   if ((fd = open ("/dev/mem", O_RDWR | O_SYNC | O_CLOEXEC) ) < 0)
     return wiringPiFailure (WPI_ALMOST, "wiringPiSetup: Unable to open /dev/mem: %s\n", strerror (errno)) ;
+
+// SYST:
+
+  systReg = (uint32_t *)mmap(0, BLOCK_SIZE, PROT_READ|PROT_WRITE, MAP_SHARED, fd, SYST_BASE ) ;
+  if ((int32_t)systReg == -1)
+    return wiringPiFailure (WPI_ALMOST, "wiringPiSetup: mmap (GPIO) failed: %s\n", strerror (errno)) ;
 
 // GPIO:
 

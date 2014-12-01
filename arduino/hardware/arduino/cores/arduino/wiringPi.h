@@ -145,7 +145,6 @@ struct wiringPiNodeStruct
 
 extern struct wiringPiNodeStruct *wiringPiNodes ;
 
-
 // Function prototypes
 //	c++ wrappers thanks to a comment by Nick Lott
 //	(and others on the Raspberry Pi forums)
@@ -177,6 +176,8 @@ extern int  wiringPiSetupPhys   (void) ;
 extern void pinModeAlt          (int pin, int mode) ;
 extern void pullUpDnControl     (int pin, int pud) ;
 extern void pwmWrite            (int pin, int value) ;
+extern int  digitalReadQuick    (uint8_t pin) ;
+extern void digitalWriteQuick   (uint8_t pin, uint8_t value) ;
 #ifndef Arduino_h
 extern void pinMode             (uint8_t pin, uint8_t mode) ;
 extern int  digitalRead         (uint8_t pin) ;
@@ -224,6 +225,7 @@ extern int piHiPri (const int pri) ;
 
 // Extras from arduino land
 
+extern uint64_t tick            (void) ;
 #ifndef Arduino_h
 extern void         delay             (unsigned long howLong) ;
 extern void         delayMicroseconds (unsigned int howLong) ;

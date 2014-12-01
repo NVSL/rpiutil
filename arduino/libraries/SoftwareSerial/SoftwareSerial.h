@@ -32,6 +32,7 @@ http://arduiniana.org.
 #ifndef SoftwareSerial_h
 #define SoftwareSerial_h
 
+#include <Arduino.h>
 #include <inttypes.h>
 #include <Stream.h>
 
@@ -40,29 +41,24 @@ http://arduiniana.org.
 ******************************************************************************/
 
 #define _SS_MAX_RX_BUFF 64 // RX buffer size
-#ifndef GCC_VERSION
-#define GCC_VERSION (__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__)
-#endif
+#define halfbit 500000
+#define fullbit 1000000
 
 class SoftwareSerial : public Stream
 {
 private:
   // per object data
   uint8_t _receivePin;
-  uint8_t _receiveBitMask;
-  volatile uint8_t *_receivePortRegister;
-  uint8_t _transmitBitMask;
-  volatile uint8_t *_transmitPortRegister;
+  uint8_t _transmitPin;
 
-  uint16_t _rx_delay_centering;
-  uint16_t _rx_delay_intrabit;
-  uint16_t _rx_delay_stopbit;
-  uint16_t _tx_delay;
+  uint32_t baud;
+
 
   uint16_t _buffer_overflow:1;
   uint16_t _inverse_logic:1;
 
   // static data
+  static uint64_t _clock_base;
   static char _receive_buffer[_SS_MAX_RX_BUFF]; 
   static volatile uint8_t _receive_buffer_tail;
   static volatile uint8_t _receive_buffer_head;
@@ -70,13 +66,11 @@ private:
 
   // private methods
   void recv();
-  uint8_t rx_pin_read();
-  void tx_pin_write(uint8_t pin_state);
   void setTX(uint8_t transmitPin);
   void setRX(uint8_t receivePin);
 
   // private static method for timing
-  static inline void tunedDelay(uint16_t delay);
+  static inline void tunedDelay(unsigned int delay, bool reset = false);
 
 public:
   // public methods
@@ -100,13 +94,17 @@ public:
   static inline void handle_interrupt();
 };
 
-// Arduino 0012 workaround
-#undef int
-#undef char
-#undef long
-#undef byte
-#undef float
-#undef abs
-#undef round
+//
+// Interrupt handling
+//
+
+/* static */
+inline void SoftwareSerial::handle_interrupt()
+{
+  if (active_object)
+  {
+    active_object->recv();
+  }
+}
 
 #endif

@@ -37,9 +37,13 @@
 
 // include the library code:
 #include <LiquidCrystal.h>
+#include <cstdio>
 
 // initialize the library with the numbers of the interface pins
 LiquidCrystal lcd(12, 5, 21, 20, 19, 13);
+
+unsigned int mill = 0;
+char content[20];
 
 void setup() {
   // set up the LCD's number of columns and rows: 
@@ -51,8 +55,11 @@ void setup() {
 void loop() {
   // set the cursor to column 0, line 1
   // (note: line 1 is the second row, since counting begins with 0):
+  mill += 1;
   lcd.setCursor(0, 1);
   // print the number of seconds since reset:
-  lcd.print(millis()/1000);
+  sprintf( content, "%4d:%02d", mill / 100, mill % 100 );
+  lcd.print(content);
+  delay(1000);
 }
 

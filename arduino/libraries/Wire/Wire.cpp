@@ -23,6 +23,7 @@ extern "C" {
   #include <stdio.h>
   #include <stdlib.h>
   #include <string.h>
+  #include <unistd.h>
   #include <inttypes.h>
   #include <fcntl.h>
   //#include "twi.h"
@@ -211,6 +212,15 @@ void (*TwoWire::user_onReceive)(int);
 // Constructors ////////////////////////////////////////////////////////////////
 TwoWire::TwoWire()
 {
+}
+
+TwoWire::~TwoWire(){
+    if(DEBUG){
+        printf("Destructor\n");
+    }
+    if(fd > 0){
+        close(fd);
+    }
 }
 
 // Public Methods //////////////////////////////////////////////////////////////
