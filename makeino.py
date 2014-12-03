@@ -52,6 +52,24 @@ def main(argv):
         cmd += " -l%s" % lib
     for fname in sources:
         if fname.endswith('.ino'):
+            f = open(fname, 'r')
+            lines = f.readlines()
+            arduino = True
+            serial = True
+            for line in lines:
+                if 'Arduino.h' in line:
+                    arduino = False
+                if 'HardwareSerial.h' in line:
+                    serial = False
+            f.close()
+            if arduino or serial:
+                f = open(fname, 'w')
+                if serial:
+                    lines.insert(0, '#include <HardwareSerial.h>\n')
+                if arduino:
+                    lines.insert(0, '#include <Arduino.h>\n')
+                f.write(''.join(lines))
+                f.close()
             cpp = fname[:-4] + '.cpp'
             print 'ln -sf %s %s' % (fname.split('/')[-1], cpp)
             os.system('ln -sf %s %s' % (fname.split('/')[-1], cpp))

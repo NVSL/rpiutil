@@ -11,7 +11,8 @@ PREFIX=
 
 #STATIC=libArduino.a
 DYNAMIC=libArduino.so.$(VERSION)
-PYTHON=_Arduino.so Arduino.py
+PYTHON=_Arduino.so 
+PYTHON_WRAPPER=Arduino_wrap.o
 
 #DEBUG	= -g -O0
 DEBUG	= -O2
@@ -62,10 +63,14 @@ $(DYNAMIC):	$(OBJ)
 	@echo [Compile] $<
 	@$(CC) -c $(CFLAGS) $< -o $@
 
-$(PYTHON): $(DYNAMIC) Arduino.i
+$(PYTHON): $(DYNAMIC) $(PYTHON_WRAPPER)
+	@echo [Linking python binding]
+	@$(CC) -shared -I/usr/include/python2.7 -I. libArduino.so.$(VERSION) Arduino_wrap.o -o _Arduino.so 
+
+$(PYTHON_WRAPPER): Arduino.i
 	@echo [Making python binding]
 	@swig -c++ -python -I/usr/include Arduino.i
-	@$(CC) -shared -fPIC -I/usr/include/python2.7 -I. libArduino.so.$(VERSION) -o _Arduino.so Arduino_wrap.cxx
+	@$(CC) -c $(CFLAGS) -I/usr/include/python2.7 Arduino_wrap.cxx
 
 .PHONEY:	clean
 clean:
@@ -90,7 +95,6 @@ install-headers: $(DESTDIR)$(PREFIX)/include/avr
 	@install -m 0644 Arduino.h		$(DESTDIR)$(PREFIX)/include
 	@install -m 0644 Printable.h	$(DESTDIR)$(PREFIX)/include
 	@install -m 0644 HardwareSerial.h	$(DESTDIR)$(PREFIX)/include
-	@install -m 0644 binary.h		$(DESTDIR)$(PREFIX)/include
 	@install -m 0644 Print.h		$(DESTDIR)$(PREFIX)/include
 	@install -m 0644 Stream.h		$(DESTDIR)$(PREFIX)/include
 	@install -m 0644 WCharacter.h	$(DESTDIR)$(PREFIX)/include
@@ -122,7 +126,6 @@ uninstall:
 	@rm -f $(DESTDIR)$(PREFIX)/include/Arduino.h
 	@rm -f $(DESTDIR)$(PREFIX)/include/Printable.h
 	@rm -f $(DESTDIR)$(PREFIX)/include/HardwareSerial.h
-	@rm -f $(DESTDIR)$(PREFIX)/include/binary.h
 	@rm -f $(DESTDIR)$(PREFIX)/include/Print.h
 	@rm -f $(DESTDIR)$(PREFIX)/include/Stream.h
 	@rm -f $(DESTDIR)$(PREFIX)/include/WCharacter.h
@@ -135,7 +138,7 @@ uninstall:
 
 .PHONEY:	depend
 depend:
-	makedepend -Y $(SRC) $(SRC_I2C)
+	makedepend -Y $(SRC)
 
 # DO NOT DELETE
 WString.o: WString.h

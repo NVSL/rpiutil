@@ -6,8 +6,6 @@
 #include <math.h>
 #include <stdint.h>
 #include <avr/pgmspace.h>
-#include "binary.h"
-#include "HardwareSerial.h"
 
 #ifdef __cplusplus
 extern "C"{

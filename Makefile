@@ -9,8 +9,12 @@ lib:
 	@mkdir lib
 	@mkdir lib/python
 
+.PHONEY: serial
+serial: inittab cmdline.txt
+	@disable_ttyAMA0
+
 .PHONEY: install
-install: include lib
+install: include lib serial
 	@echo "Installing wiringPi"
 	@cd wiringPi; ./build uninstall; ./build
 	@echo "Install libArduino"

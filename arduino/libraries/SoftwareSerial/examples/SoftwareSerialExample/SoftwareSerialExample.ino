@@ -53,6 +53,8 @@ void loop() // run over and over
     c = mySerial.read();
     Serial.write(c);
     mySerial.write(c);
+  }else{
+    delay(10);
   }
 }
 
