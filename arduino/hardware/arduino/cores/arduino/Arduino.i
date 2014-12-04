@@ -1,9 +1,15 @@
 %module Arduino
 %{
 #include "Arduino.h"
+#include "HardwareSerial.h"
+#include "Stream.h"
+#include "Print.h"
 %}
 #define __extension__ 
 %include <stdint.h>
+%include "Print.h"
+%include "Stream.h"
+%include "HardwareSerial.h"
 #define HIGH 0x1
 #define LOW  0x0
 
