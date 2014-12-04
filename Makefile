@@ -19,18 +19,23 @@ install: include lib serial
 	@cd wiringPi; ./build uninstall; ./build
 	@echo "Install libArduino"
 	$(MAKE) -C arduino/hardware/arduino/cores/arduino uninstall
+	$(MAKE) -C arduino/hardware/arduino/cores/arduino clean
 	$(MAKE) -C arduino/hardware/arduino/cores/arduino install
 	@echo "Install libWire"
 	$(MAKE) -C arduino/libraries/Wire uninstall
+	$(MAKE) -C arduino/libraries/Wire clean
 	$(MAKE) -C arduino/libraries/Wire install
 	@echo "Install libSPI"
 	$(MAKE) -C arduino/libraries/SPI uninstall
+	$(MAKE) -C arduino/libraries/SPI clean
 	$(MAKE) -C arduino/libraries/SPI install
 	@echo "Install libSoftwareSerial"
 	$(MAKE) -C arduino/libraries/SoftwareSerial uninstall
+	$(MAKE) -C arduino/libraries/SoftwareSerial clean
 	$(MAKE) -C arduino/libraries/SoftwareSerial install
 	@echo "Install libLiquidCrystal"
 	$(MAKE) -C arduino/libraries/LiquidCrystal uninstall
+	$(MAKE) -C arduino/libraries/LiquidCrystal clean
 	$(MAKE) -C arduino/libraries/LiquidCrystal install
 
 .PHONEY: clean
