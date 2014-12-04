@@ -12,7 +12,7 @@ PREFIX=
 #STATIC=libArduino.a
 DYNAMIC=libArduino.so.$(VERSION)
 PYTHON=_Arduino.so 
-PYTHON_WRAPPER=Arduino_wrap.o
+PYTHON_WRAPPER=Arduino_wrap.o Arduino.py
 
 #DEBUG	= -g -O0
 DEBUG	= -O2

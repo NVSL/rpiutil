@@ -11,7 +11,8 @@ PREFIX=
 
 #STATIC=libLiquidCrystal.a
 DYNAMIC=libLiquidCrystal.so.$(VERSION)
-PYTHON=_LiquidCrystal.so LiquidCrystal.py
+PYTHON=_LiquidCrystal.so 
+PYTHON_WRAPPER=LiquidCrystal_wrap.o LiquidCrystal.py
 
 #DEBUG	= -g -O0
 DEBUG	= -O2
@@ -47,10 +48,14 @@ $(DYNAMIC):	$(OBJ)
 	@echo [Compile] $<
 	@$(CC) -c $(CFLAGS) $< -o $@
 
-$(PYTHON): $(DYNAMIC) LiquidCrystal.i
+$(PYTHON): $(DYNAMIC) $(PYTHON_WRAPPER)
+	@echo [Linking python binding]
+	@$(CC) -shared -I/usr/include/python2.7 -I$(GADGETRON_RASPI_PATH)/include -I. libLiquidCrystal.so.$(VERSION) LiquidCrystal_wrap.o -o _LiquidCrystal.so 
+
+$(PYTHON_WRAPPER): LiquidCrystal.i
 	@echo [Making python binding]
 	@swig -c++ -python -I/usr/include -I$(GADGETRON_RASPI_PATH)/include LiquidCrystal.i
-	@$(CC) -shared -fPIC -I/usr/include/python2.7 -I$(GADGETRON_RASPI_PATH)/include -I. libLiquidCrystal.so.$(VERSION) LiquidCrystal_wrap.cxx -o _LiquidCrystal.so 
+	@$(CC) -c $(CFLAGS) -I/usr/include/python2.7 LiquidCrystal_wrap.cxx
 
 .PHONEY:	clean
 clean:

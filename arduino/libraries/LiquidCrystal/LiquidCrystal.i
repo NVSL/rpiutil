@@ -5,7 +5,6 @@
 #define __extension__ 
 %include <stdint.h>
 %include <Print.h>
-//%include <LiquidCrystal.h>
 class LiquidCrystal : public Print {
 public:
   LiquidCrystal(uint8_t rs, uint8_t enable,
