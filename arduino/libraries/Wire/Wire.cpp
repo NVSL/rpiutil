@@ -29,15 +29,15 @@ extern "C" {
   //#include "twi.h"
   #include <sys/ioctl.h>
   #include <linux/i2c-dev.h>
-  #include <linux/i2c.h>
+  //#include <linux/i2c.h>
 }
 
 #include "Wire.h"
+#define DEBUG 0
 
 //In case <linux/i2c-dev.h> is incomplete
-#ifndef I2C_DEV_H
-#define I2C_DEV_H
-#define DEBUG 0
+#ifndef LIB_I2CDEV_H
+#define LIB_I2CDEV_H
 static inline __s32 i2c_smbus_access(int file, char read_write, __u8 command, 
                                      int size, union i2c_smbus_data *data)
 {
