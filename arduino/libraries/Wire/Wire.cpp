@@ -29,11 +29,13 @@ extern "C" {
   //#include "twi.h"
   #include <sys/ioctl.h>
   #include <linux/i2c-dev.h>
-  //#include <linux/i2c.h>
+#ifndef LIB_I2CDEV_H
+  #include <linux/i2c.h>
+#endif
 }
 
 #include "Wire.h"
-#define DEBUG 0
+#define DEBUG_WIRE
 
 //In case <linux/i2c-dev.h> is incomplete
 #ifndef LIB_I2CDEV_H
@@ -215,12 +217,12 @@ TwoWire::TwoWire()
 }
 
 TwoWire::~TwoWire(){
-    if(DEBUG){
-        printf("Destructor\n");
-    }
-    if(fd > 0){
-        close(fd);
-    }
+#ifdef DEBUG_WIRE
+  printf("Destructor\n");
+#endif
+  if(fd > 0){
+    close(fd);
+  }
 }
 
 // Public Methods //////////////////////////////////////////////////////////////
@@ -291,16 +293,16 @@ uint8_t TwoWire::requestFrom(uint8_t address, uint8_t quantity, uint8_t sendStop
     rxBufferLength = read;
   }
   rxBufferIndex = 0;
-  if(DEBUG){
-    printf("request %d bytes from register 0x%02X on address %02X\n", quantity, reg, address);
-    printf("fd: %d\n", fd);
-    printf("bufferLength %d\n", rxBufferLength);
-    printf("Values: ");
-    for (int i = 0; i < rxBufferLength; ++i){
-      printf("0x%02X ", rxBuffer[i]);
-    }
-    puts("");
+#ifdef DEBUG_WIRE
+  printf("request %d bytes from register 0x%02X on address %02X\n", quantity, reg, address);
+  printf("fd: %d\n", fd);
+  printf("bufferLength %d\n", rxBufferLength);
+  printf("Values: ");
+  for (int i = 0; i < rxBufferLength; ++i){
+    printf("0x%02X ", rxBuffer[i]);
   }
+  puts("");
+#endif
   return read;
 }
 
@@ -375,9 +377,9 @@ uint8_t TwoWire::endTransmission(uint8_t sendStop)
     ret = i2c_smbus_write_i2c_block_data( fd, txBuffer[0], txBufferLength-1, txBuffer+1 );
     //ret = i2c_smbus_write_block_data( fd, txBuffer[0], txBufferLength-1, txBuffer+1 );
   }
-  if(DEBUG){
-    printf("endTransmission get status %d\n", ret);
-  }
+#ifdef DEBUG_WIRE
+  printf("endTransmission get status %d\n", ret);
+#endif
   // reset tx buffer iterator vars
   txBufferIndex = 0;
   txBufferLength = 0;
