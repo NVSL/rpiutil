@@ -1565,6 +1565,93 @@ static void *interruptHandler (void *arg)
 
 
 /*
+ * changeOwner:
+ *	Change the ownership of the file to the real userId of the calling
+ *	program so we can access it.
+ *********************************************************************************
+ */
+static void changeOwner (char *cmd, const char *file)
+{
+  uid_t uid = getuid () ;
+  uid_t gid = getgid () ;
+
+  if (chown (file, uid, gid) != 0)
+  {
+    if (errno == ENOENT)	// Warn that it's not there
+      fprintf (stderr, "%s: Warning: File not present: %s\n", cmd, file) ;
+    else
+    {
+      fprintf (stderr, "%s: Unable to change ownership of %s: %s\n", cmd, file, strerror (errno)) ;
+      exit (1) ;
+    }
+  }
+}
+
+/*
+ * doEdge:
+ *	gpio edge pin mode
+ *	Easy access to changing the edge trigger on a GPIO pin
+ *	This uses the /sys/class/gpio device interface.
+ *********************************************************************************
+ */
+void doEdge (const char *pinS, const char *mode)
+{
+  FILE *fd ;
+  int pin ;
+  char fName [128] ;
+
+  pin  = atoi (pinS) ;
+
+// Export the pin and set direction to input
+
+  if ((fd = fopen ("/sys/class/gpio/export", "w")) == NULL)
+  {
+    fprintf (stderr, "%s: Unable to open GPIO export interface: %s\n", "wiringPi", strerror (errno)) ;
+    exit (1) ;
+  }
+
+  fprintf (fd, "%d\n", pin) ;
+  fclose (fd) ;
+
+  sprintf (fName, "/sys/class/gpio/gpio%d/direction", pin) ;
+  if ((fd = fopen (fName, "w")) == NULL)
+  {
+    fprintf (stderr, "%s: Unable to open GPIO direction interface for pin %d: %s\n", "wiringPi", pin, strerror (errno)) ;
+    exit (1) ;
+  }
+
+  fprintf (fd, "in\n") ;
+  fclose (fd) ;
+
+  sprintf (fName, "/sys/class/gpio/gpio%d/edge", pin) ;
+  if ((fd = fopen (fName, "w")) == NULL)
+  {
+    fprintf (stderr, "%s: Unable to open GPIO edge interface for pin %d: %s\n", "wiringPi", pin, strerror (errno)) ;
+    exit (1) ;
+  }
+
+  /**/ if (strcasecmp (mode, "none")    == 0) fprintf (fd, "none\n") ;
+  else if (strcasecmp (mode, "rising")  == 0) fprintf (fd, "rising\n") ;
+  else if (strcasecmp (mode, "falling") == 0) fprintf (fd, "falling\n") ;
+  else if (strcasecmp (mode, "both")    == 0) fprintf (fd, "both\n") ;
+  else
+  {
+    fprintf (stderr, "%s: Invalid mode: %s. Should be none, rising, falling or both\n", "edge", mode) ;
+    exit (1) ;
+  }
+
+// Change ownership of the value and edge files, so the current user can actually use it!
+
+  sprintf (fName, "/sys/class/gpio/gpio%d/value", pin) ;
+  changeOwner ("wiringPi", fName) ;
+
+  sprintf (fName, "/sys/class/gpio/gpio%d/edge", pin) ;
+  changeOwner ("wiringPi", fName) ;
+
+  fclose (fd) ;
+}
+
+/*
  * wiringPiISR:
  *	Pi Specific.
  *	Take the details and create an interrupt handler that will do a call-
@@ -1618,18 +1705,7 @@ int wiringPiISR (int pin, int mode, void (*function)(void))
 
     if (pid == 0)	// Child, exec
     {
-      /**/ if (access ("/usr/local/bin/gpio", X_OK) == 0)
-      {
-	execl ("/usr/local/bin/gpio", "gpio", "edge", pinS, modeS, (char *)NULL) ;
-	return wiringPiFailure (WPI_FATAL, "wiringPiISR: execl failed: %s\n", strerror (errno)) ;
-      }
-      else if (access ("/usr/bin/gpio", X_OK) == 0)
-      {
-	execl ("/usr/bin/gpio", "gpio", "edge", pinS, modeS, (char *)NULL) ;
-	return wiringPiFailure (WPI_FATAL, "wiringPiISR: execl failed: %s\n", strerror (errno)) ;
-      }
-      else
-	return wiringPiFailure (WPI_FATAL, "wiringPiISR: Can't find gpio program\n") ;
+        doEdge(pinS, modeS);
     }
     else		// Parent, wait
       wait (NULL) ;
@@ -1798,6 +1874,87 @@ uint64_t tick (void)
     return (*(uint64_t *)((char *)systReg + 4));
 }
 
+static int moduleLoaded (const char *modName)
+{
+  int len   = strlen (modName) ;
+  int found = 0;
+  FILE *fd = fopen ("/proc/modules", "r") ;
+  char line [80] ;
+
+  if (fd == NULL)
+  {
+    fprintf (stderr, "Unable to check modules: %s\n", strerror (errno)) ;
+    exit (1) ;
+  }
+
+  while (fgets (line, 80, fd) != NULL)
+  {
+    if (strncmp (line, modName, len) != 0)
+      continue ;
+
+    found = 1;
+    break ;
+  }
+
+  fclose (fd) ;
+
+  return found ;
+}
+
+static void doLoad (char *module, char* arg)
+{
+  const char *module1, *module2 ;
+  char cmd [80] ;
+  const char *file1, *file2 ;
+  char args1 [32], args2 [32] ;
+
+  args1 [0] = args2 [0] = 0 ;
+
+  /**/ if (strcasecmp (module, "spi") == 0)
+  {
+    module1 = "spidev" ;
+    module2 = "spi_bcm2708" ;
+    file1  = "/dev/spidev0.0" ;
+    file2  = "/dev/spidev0.1" ;
+    if (arg)
+      sprintf (args1, " bufsiz=%d", atoi(arg) * 1024);
+  }
+  else if (strcasecmp (module, "i2c") == 0)
+  {
+    module1 = "i2c_dev" ;
+    module2 = "i2c_bcm2708" ;
+    file1  = "/dev/i2c-0" ;
+    file2  = "/dev/i2c-1" ;
+    if (arg)
+      sprintf (args2, " baudrate=%d", atoi (arg) * 1000) ;
+  }
+  else
+    return;
+
+  if (!moduleLoaded (module1))
+  {
+    sprintf (cmd, "modprobe %s%s", module1, args1) ;
+    system (cmd) ;
+  }
+
+  if (!moduleLoaded (module2))
+  {
+    sprintf (cmd, "modprobe %s%s", module2, args2) ;
+    system (cmd) ;
+  }
+
+  if (!moduleLoaded (module2))
+  {
+    fprintf (stderr, "%s: Unable to load %s\n", module, module2) ;
+    exit (1) ;
+  }
+
+  delay(1) ;	// To let things get settled
+
+  changeOwner (module, file1) ;
+  changeOwner (module, file2) ;
+}
+
 
 /*
  * wiringPiSetup:
@@ -1903,6 +2060,8 @@ int wiringPiSetup (void)
     wiringPiMode = WPI_MODE_GPIO ;
   else
     wiringPiMode = WPI_MODE_PINS ;
+  doLoad("i2c", NULL);
+  doLoad("spi", NULL);
 
   return 0 ;
 }
