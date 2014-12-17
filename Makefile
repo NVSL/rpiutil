@@ -15,8 +15,6 @@ serial: inittab cmdline.txt
 
 .PHONEY: install
 install: include lib serial
-	@echo "Installing wiringPi"
-	@cd wiringPi; ./build uninstall; ./build
 	@echo "Install libArduino"
 	$(MAKE) -C arduino/hardware/arduino/cores/arduino uninstall
 	$(MAKE) -C arduino/hardware/arduino/cores/arduino clean
@@ -40,8 +38,6 @@ install: include lib serial
 
 .PHONEY: clean
 clean:
-	@echo "Uninstall wiringPi"
-	@cd wiringPi; ./build uninstall; ./build clean
 	@echo "Uninstall libArduino"
 	$(MAKE) -C arduino/hardware/arduino/cores/arduino uninstall
 	$(MAKE) -C arduino/hardware/arduino/cores/arduino clean
