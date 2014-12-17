@@ -35,7 +35,7 @@ extern "C" {
 }
 
 #include "Wire.h"
-#define DEBUG_WIRE
+//#define DEBUG_WIRE
 
 //In case <linux/i2c-dev.h> is incomplete
 #ifndef LIB_I2CDEV_H

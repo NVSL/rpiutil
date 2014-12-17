@@ -1,5 +1,3 @@
-#include <Arduino.h>
-#include <HardwareSerial.h>
 /*
   LiquidCrystal Library - Hello World
  

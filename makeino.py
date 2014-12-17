@@ -62,7 +62,9 @@ def main(argv):
                 if 'HardwareSerial.h' in line:
                     serial = False
             f.close()
+            cpp = fname[:-4] + '.cpp'
             if arduino or serial:
+                fname = fname[:-3] + "rpino"
                 f = open(fname, 'w')
                 if serial:
                     lines.insert(0, '#include <HardwareSerial.h>\n')
@@ -70,7 +72,6 @@ def main(argv):
                     lines.insert(0, '#include <Arduino.h>\n')
                 f.write(''.join(lines))
                 f.close()
-            cpp = fname[:-4] + '.cpp'
             print 'ln -sf %s %s' % (fname.split('/')[-1], cpp)
             os.system('ln -sf %s %s' % (fname.split('/')[-1], cpp))
             cmd += " %s" % cpp
