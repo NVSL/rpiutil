@@ -1,3 +1,7 @@
+default:
+
+build:
+
 all: install
 
 .PHONEY: include
