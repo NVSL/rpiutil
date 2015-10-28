@@ -39,6 +39,10 @@ install: include lib serial
 	$(MAKE) -C arduino/libraries/LiquidCrystal uninstall
 	$(MAKE) -C arduino/libraries/LiquidCrystal clean
 	$(MAKE) -C arduino/libraries/LiquidCrystal install
+	@echo "Install libLED"
+	$(MAKE) -C libraries/LED uninstall
+	$(MAKE) -C libraries/LED clean
+	$(MAKE) -C libraries/LED install
 
 .PHONEY: clean
 clean:
@@ -57,5 +61,8 @@ clean:
 	@echo "Uninstall libLiquidCrystal"
 	$(MAKE) -C arduino/libraries/LiquidCrystal uninstall
 	$(MAKE) -C arduino/libraries/LiquidCrystal clean
+	@echo "Uninstall libLED"
+	$(MAKE) -C libraries/LED uninstall
+	$(MAKE) -C libraries/LED clean
 	@rm -rf lib
 	@rm -rf include
