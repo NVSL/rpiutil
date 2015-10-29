@@ -66,3 +66,6 @@ clean:
 	$(MAKE) -C libraries/LED clean
 	@rm -rf lib
 	@rm -rf include
+
+test:
+	true
