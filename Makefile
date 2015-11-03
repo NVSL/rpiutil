@@ -1,3 +1,5 @@
+LIBDIR="/home/gadgetron/Gadgetron/Gadgets/Designs/GadgetronSketchBook/libraries"
+
 default:
 
 build:
@@ -62,8 +64,10 @@ clean:
 	$(MAKE) -C arduino/libraries/LiquidCrystal uninstall
 	$(MAKE) -C arduino/libraries/LiquidCrystal clean
 	@echo "Uninstall libLED"
-	$(MAKE) -C libraries/LED uninstall
-	$(MAKE) -C libraries/LED clean
+	if [ -d $(LIBDIR) ]; then \
+		$(MAKE) -C libraries/LED uninstall; \
+		$(MAKE) -C libraries/LED clean; \
+	fi
 	@rm -rf lib
 	@rm -rf include
 
