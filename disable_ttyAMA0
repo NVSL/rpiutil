@@ -1,4 +1,0 @@
-#!/bin/sh
-sudo cp cmdline.txt /boot/cmdline.txt
-sudo cp inittab /etc/inittab
-echo disable console on ttyAMA0, please reboot if you are doing this for the first time.
