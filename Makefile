@@ -12,4 +12,6 @@ clean:
 	$(MAKE) -C SparkFun16x2SerLCD clean
 	$(MAKE) -C DistanceSensor clean
 	./shellutils/clean.sh
-	
+
+test:
+	true	
