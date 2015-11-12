@@ -10,7 +10,7 @@ all:
 
 clean:
 	echo "Cleaning up arduPi"
-	rm ../lib/arduPi.py*
-	rm arduPi_wrap*
-	rm ../lib/_arduPi.so
-	rm ../lib/libarduPi*
+	rm -rf ../lib/arduPi.py* arduPi.py*
+	rm -rf arduPi_wrap*
+	rm -rf ../lib/_arduPi.so _arduPi.so
+	rm -rf ../lib/libarduPi* libarduPi*

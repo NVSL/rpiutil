@@ -12,7 +12,7 @@ all:
 clean:
 	
 	echo "Cleaning up DistanceSensor"
-	rm DistanceSensor.py*
-	rm DistanceSensor_wrap*
-	rm _DistanceSensor.so
-	rm libDistanceSensor*
+	rm -rf ../lib/DistanceSensor.py* DistanceSensor.py*
+	rm -rf DistanceSensor_wrap*
+	rm -rf ../lib/_DistanceSensor.so _DistanceSensor.so
+	rm -rf ../lib/libDistanceSensor* libDistanceSensor*

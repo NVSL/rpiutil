@@ -12,7 +12,7 @@ all:
 clean:
 	
 	echo "Cleaning up LED"
-	rm LED.py*
-	rm LED_wrap*
-	rm _LED.so
-	rm libLED*
+	rm -rf ../lib/LED.py* LED.py*
+	rm -rf LED_wrap*
+	rm -rf ../lib/_LED.so _LED.so
+	rm -rf ../lib/libLED* libLED*
