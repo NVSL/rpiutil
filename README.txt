@@ -1,6 +1,6 @@
 This toolchain uses swig library to convert Arduino programs to python. The arduPi library is used to provide Arduino like software bindings. 
 
-One we build the tool using make:
+Once we build the tool using make:
 
 1. we will get lib/ folder that contains the compiled dynamic libraries and python files
 2. we also get include/ folder that has the necessary header files
