@@ -211,7 +211,8 @@ typedef enum
 
 static int REV = 0;
 
-
+#define OUTPUT 1
+#define INPUT 0
 
 typedef enum
 {
@@ -285,10 +286,10 @@ enum Representation{
 	BYTE
 };
 
-typedef enum {
-	INPUT,
-	OUTPUT
-}Pinmode;
+//typedef enum {
+//	INPUT,
+//	OUTPUT
+//}Pinmode;
 
 typedef enum {
 	LOW = 0,
@@ -394,12 +395,14 @@ class SPIPi{
  		void transfernb(char* tbuf, char* rbuf, uint32_t len);
 };
 
-void pinMode(int pin, Pinmode mode);
+void pinMode(int pin, int mode);
 void digitalWrite(int pin, int value);
-int digitalRead(int pin);
-int analogRead (int pin);
 void delay(long millis);
 void delayMicroseconds(long micros);
+int digitalRead(int pin);
+int analogRead (int pin);
+
+
 uint8_t shiftIn  (uint8_t dPin, uint8_t cPin, bcm2835SPIBitOrder order);
 void shiftOut (uint8_t dPin, uint8_t cPin, bcm2835SPIBitOrder order, uint8_t val);
 void attachInterrupt(int p,void (*f)(), Digivalue m);
@@ -408,18 +411,22 @@ void detachInterrupt(int p);
 //void loop();
 long millis();
 
+/* Helper functions */
 int getBoardRev();
-//uint32_t* mapmem(const char *msg, size_t size, int fd, off_t off);
+//uint32_t *mapmem(const char *msg, size_t size, int fd, off_t off);
 //void setBoardRev(int rev);
 int raspberryPinNumber(int arduinoPin);
 pthread_t *getThreadIdFromPin(int pin);
-uint32_t bcm2835_peri_read(volatile uint32_t* paddr);
-uint32_t bcm2835_peri_read_nb(volatile uint32_t* paddr);
-void bcm2835_peri_write(volatile uint32_t* paddr, uint32_t value);
-void bcm2835_peri_write_nb(volatile uint32_t* paddr, uint32_t value);
-void bcm2835_peri_set_bits(volatile uint32_t* paddr, uint32_t value, uint32_t mask);
-void bcm2835_gpio_fsel(uint8_t pin, uint8_t mode);
+uint32_t ch_peri_read(volatile uint32_t* paddr);
+uint32_t ch_peri_read_nb(volatile uint32_t* paddr);
+void ch_peri_write(volatile uint32_t* paddr, uint32_t value);
+void ch_peri_write_nb(volatile uint32_t* paddr, uint32_t value);
+void ch_peri_set_bits(volatile uint32_t* paddr, uint32_t value, uint32_t mask);
+void ch_gpio_fsel(uint8_t pin, uint8_t mode);
 void * threadFunction(void *args);
+
+void delay(int time);
+void delayMicroseconds(int time);
 
 extern SerialPi Serial;
 extern WirePi Wire;
@@ -510,12 +517,14 @@ class SPIPi{
 };
 
 /* Some useful arduino functions */
-void pinMode(int pin, Pinmode mode);
+void pinMode(int pin, int mode);
 void digitalWrite(int pin, int value);
-int digitalRead(int pin);
-int analogRead (int pin);
 void delay(long millis);
 void delayMicroseconds(long micros);
+int digitalRead(int pin);
+int analogRead (int pin);
+
+
 uint8_t shiftIn  (uint8_t dPin, uint8_t cPin, bcm2835SPIBitOrder order);
 void shiftOut (uint8_t dPin, uint8_t cPin, bcm2835SPIBitOrder order, uint8_t val);
 void attachInterrupt(int p,void (*f)(), Digivalue m);
@@ -526,17 +535,20 @@ long millis();
 
 /* Helper functions */
 int getBoardRev();
-//uint32_t* mapmem(const char *msg, size_t size, int fd, off_t off);
+//uint32_t *mapmem(const char *msg, size_t size, int fd, off_t off);
 //void setBoardRev(int rev);
 int raspberryPinNumber(int arduinoPin);
 pthread_t *getThreadIdFromPin(int pin);
-uint32_t bcm2835_peri_read(volatile uint32_t* paddr);
-uint32_t bcm2835_peri_read_nb(volatile uint32_t* paddr);
-void bcm2835_peri_write(volatile uint32_t* paddr, uint32_t value);
-void bcm2835_peri_write_nb(volatile uint32_t* paddr, uint32_t value);
-void bcm2835_peri_set_bits(volatile uint32_t* paddr, uint32_t value, uint32_t mask);
-void bcm2835_gpio_fsel(uint8_t pin, uint8_t mode);
+uint32_t ch_peri_read(volatile uint32_t* paddr);
+uint32_t ch_peri_read_nb(volatile uint32_t* paddr);
+void ch_peri_write(volatile uint32_t* paddr, uint32_t value);
+void ch_peri_write_nb(volatile uint32_t* paddr, uint32_t value);
+void ch_peri_set_bits(volatile uint32_t* paddr, uint32_t value, uint32_t mask);
+void ch_gpio_fsel(uint8_t pin, uint8_t mode);
 void * threadFunction(void *args);
+
+void delay(int time);
+void delayMicroseconds(int time);
 
 extern SerialPi Serial;
 extern WirePi Wire;
