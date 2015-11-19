@@ -1,6 +1,6 @@
 all:
-	mkdir ${ARDUPI_HOME}/lib
-	mkdir ${ARDUPI_HOME}/include
+	mkdir -p ${ARDUPI_HOME}/lib
+	mkdir -p ${ARDUPI_HOME}/include
 	$(MAKE) -C arduPi
 	$(MAKE) -C LED
 	$(MAKE) -C SparkFun16x2SerLCD
