@@ -7,6 +7,8 @@ all:
 	cp _arduPi.so ../lib
 	cp arduPi.py ../lib
 	cp arduPi.h ../include
+	cp bcm2835.h ../include
+	cp bcm2835.c ../include
 
 clean:
 	echo "Cleaning up arduPi"
