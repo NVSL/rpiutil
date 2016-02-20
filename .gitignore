@@ -1,3 +1,14 @@
 #### LOG FILES ####
 
 *.log
+*.pyc
+\#*
+*b\#?
+*s\#?
+*l\#?
+*~
+*log.txt
+*gtron.txt
+*gtron.log
+.\#*
+.egg-info
