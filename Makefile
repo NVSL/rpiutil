@@ -1,3 +1,6 @@
+
+default:
+	true
 all:
 	mkdir -p ${ARDUPI_HOME}/lib
 	mkdir -p ${ARDUPI_HOME}/include
